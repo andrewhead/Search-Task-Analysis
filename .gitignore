@@ -87,3 +87,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Database credentials
+*-credentials.json
+
+# SQLite
+*.sqlite
+*.db

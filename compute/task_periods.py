@@ -9,25 +9,6 @@ from models import QuestionEvent, TaskPeriod
 
 
 logger = logging.getLogger('data')
-
-
-# These events suggest that a URL has been 'activated' and is being watched
-ACTIVATING_EVENTS = [
-    'Tab opened',
-    'Tab activated',
-    'Tab content loaded',
-    'Window activated'
-]
-
-# These events suggest that the *previous* URL is now no longer being watched
-DEACTIVATING_EVENTS = [
-    'Tab opened',
-    'Tab activated',
-    'Tab content loaded',
-    'Window activated',
-    'Window deactivated'
-]
-
 CONCERN_COUNT = 6  # needs to be updated to reflect count of concerns in our study
 
 
@@ -95,4 +76,4 @@ def main(*args, **kwargs):
 
 
 def configure_parser(parser):
-    parser.description = "Compute the time bounds of all visits to URLs on the web."
+    parser.description = "Compute the time bounds of all tasks a user completed in our form."

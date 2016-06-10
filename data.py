@@ -20,7 +20,7 @@ data_logger.addHandler(log_handler)
 data_logger.propagate = False
 
 from models import create_tables, init_database
-from compute import task_periods
+from compute import task_periods, location_visits
 # from migrate import
 # from dump import
 
@@ -29,7 +29,7 @@ COMMANDS = {
     'compute': {
         'description': "Compute derived fields from existing data.",
         'module_help': "Type of data to compute.",
-        'modules': [task_periods],
+        'modules': [task_periods, location_visits],
     },
     'migrate': {
         'description':

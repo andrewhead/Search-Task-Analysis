@@ -94,3 +94,7 @@ ENV/
 # SQLite
 *.sqlite
 *.db
+
+# Text editor temporary files
+.*.swp
+.*.swo

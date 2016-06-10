@@ -96,6 +96,9 @@ class LocationEvent(ProxyModel):
     url = TextField()
     event_type = TextField()
 
+    class Meta:
+        db_table = 'searchlogger_locationevent'
+
 
 class QuestionEvent(ProxyModel):
     ''' A user interface of a participant interacting with our form. '''
@@ -104,6 +107,9 @@ class QuestionEvent(ProxyModel):
     question_index = IntegerField()
     time = DateTimeField()
     event_type = TextField()
+
+    class Meta:
+        db_table = 'form_questionevent'
 
 
 class TaskPeriod(ProxyModel):
@@ -165,5 +171,5 @@ def init_database(db_type, config_filename=None):
 def create_tables():
     db_proxy.create_tables([
         TaskPeriod,
-        LocationEvent,
+        LocationVisit,
     ], safe=True)

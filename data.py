@@ -22,7 +22,7 @@ data_logger.propagate = False
 from models import create_tables, init_database
 from compute import task_periods, location_visits
 # from migrate import
-# from dump import
+from dump import location_visits as dump_location_visits
 
 
 COMMANDS = {
@@ -39,9 +39,9 @@ COMMANDS = {
         'modules': [],
     },
     'dump': {
-        'description': "Dump data to a JSON file.",
+        'description': "Dump data to a text file.",
         'module_help': "Type of data to dump.",
-        'modules': [],
+        'modules': [dump_location_visits],
     },
 }
 

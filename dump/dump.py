@@ -67,9 +67,11 @@ def _wrap_harvest_func_with_dump_func(harvest_func, dump_func, dest_basename, fi
     def harvest_and_dump(*args, **kwargs):
 
         full_filename = dest_basename + '-' + time.strftime("%Y-%m-%d_%H:%M:%S") + file_extension
+        if not os.path.exists('data'):
+            os.makedirs('data')
         dump_path = os.path.join('data', full_filename)
 
-        with codecs.open(dump_path, 'w', encoding='utf8') as dump_file:
+        with codecs.open(dump_path, 'w', encoding='utf-8') as dump_file:
             dump_func(harvest_func, dump_file, *args, **kwargs)
 
     return harvest_and_dump
@@ -91,6 +93,8 @@ def run_and_dump_csv(harvest_func, dump_file, column_names, *args, **kwargs):
         for index, item in enumerate(record):
             if type(item) == str or type(item) == unicode:
                 record[index] = '"' + item + '"'
+            elif isinstance(item, datetime):
+                record[index] = item.isoformat()
             else:
                 record[index] = str(item)
         return ','.join(record) + '\n'

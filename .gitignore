@@ -98,3 +98,6 @@ ENV/
 # Text editor temporary files
 .*.swp
 .*.swo
+
+# Data files produced from analysis
+data

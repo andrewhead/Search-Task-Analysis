@@ -190,6 +190,20 @@ class PackagePair(ProxyModel):
         db_table = 'form_packagepair'
 
 
+class PackageComparison(ProxyModel):
+    '''
+    A comparison between packages that participants give at the beginning and end of the study.
+    '''
+
+    user_id = IntegerField()
+    stage = TextField()
+    likert_preference = IntegerField()
+    likert_quality = IntegerField()
+
+    class Meta:
+        db_table = 'form_packagecomparison'
+
+
 def init_database(db_type, config_filename=None):
 
     if db_type == 'postgres':

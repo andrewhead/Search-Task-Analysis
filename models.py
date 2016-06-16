@@ -179,6 +179,17 @@ class Question(ProxyModel):
         db_table = 'form_question'
 
 
+class PackagePair(ProxyModel):
+    ''' A pair of packages that participants have chosen to learn about for the study. '''
+
+    user_id = IntegerField()
+    package1 = TextField()
+    package2 = TextField()
+
+    class Meta:
+        db_table = 'form_packagepair'
+
+
 def init_database(db_type, config_filename=None):
 
     if db_type == 'postgres':

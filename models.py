@@ -7,7 +7,7 @@ import datetime
 import json
 import copy
 from peewee import Model, SqliteDatabase, Proxy, PostgresqlDatabase,\
-    IntegerField, DateTimeField, TextField
+    IntegerField, DateTimeField, TextField, BooleanField
 
 
 logger = logging.getLogger('data')
@@ -158,6 +158,25 @@ class LocationRating(ProxyModel):
     title = TextField()
     rating = IntegerField(index=True)
     visit_date = DateTimeField()
+
+
+class Question(ProxyModel):
+    '''
+    Answers to a set of follow-up questions we ask users after
+    each of our study's search tasks.
+    '''
+
+    user_id = IntegerField()
+    question_index = IntegerField()
+    concern = TextField()
+    likert_comparison_evidence = IntegerField()
+    na_likert_comparison_evidence = BooleanField()
+    evidence = TextField()
+    likert_confidence = IntegerField()
+    na_likert_confidence = BooleanField()
+
+    class Meta:
+        db_table = 'form_question'
 
 
 def init_database(db_type, config_filename=None):

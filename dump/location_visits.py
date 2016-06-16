@@ -13,7 +13,7 @@ logger = logging.getLogger('data')
 
 @dump_csv(__name__, [
     "Compute Index", "User", "Task Index", "Concern Index",
-    "URL", "Page Title", "Start Time", "End Time"])
+    "Tab ID", "URL", "Page Title", "Start Time", "End Time"])
 def main(*args, **kwargs):
 
     for visit in LocationVisit.select():
@@ -22,6 +22,7 @@ def main(*args, **kwargs):
             visit.user_id,
             visit.task_index,
             visit.concern_index,
+            visit.tab_id,
             visit.url,
             visit.title,
             visit.start,

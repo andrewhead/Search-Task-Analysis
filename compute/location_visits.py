@@ -11,22 +11,63 @@ from models import TaskPeriod, LocationEvent, LocationVisit
 logger = logging.getLogger('data')
 
 
-# These events suggest that a URL has been 'activated' and is being watched
+# These events suggest that a URL has been 'activated' and is now being visited
 ACTIVATING_EVENTS = [
-    'Tab opened',
-    'Tab activated',
-    'Tab content loaded',
-    'Window activated'
+    "Tab opened",
+    "Tab content loaded (pageshow)",
+    "Tab activated",
+    "Window activated",
 ]
 
-# These events suggest that the *previous* URL is now no longer being watched
+# For the current URL, these events suggest it is no longer being visited
 DEACTIVATING_EVENTS = [
-    'Tab opened',
-    'Tab activated',
-    'Tab content loaded',
-    'Window activated',
-    'Window deactivated'
+    "Tab closed",
+    "Tab deactivated",
+    "Window deactivated",
 ]
+
+# For a *new* URL, these events suggest that all past URLs are no longer being visited
+NEW_PAGE_EVENTS = [
+    "Tab content loaded (load)",
+    "Tab content loaded (ready)",
+    "Tab content loaded (pageshow)",
+]
+
+
+def create_location_visit(compute_index, user_id, activating_event, deactivating_event):
+    '''
+    Create a record of the start and end of a visit to a URL within a tab.
+    Note that while an `activating_event` will necessarily be associated with the URL
+    and page title for the visited page, the deactivating event may be associated
+    with a different URL and page.
+    '''
+
+    # When a visit to a URL is complete, find out if there's an associated task and,
+    # if there is, store a record of this visit
+    task_periods = (
+        TaskPeriod.select()
+        .where(
+            TaskPeriod.user_id == user_id,
+            TaskPeriod.start < activating_event.visit_date,
+            TaskPeriod.end > deactivating_event.visit_date,
+        )
+    )
+
+    # If we successfully fetched a task whose period matched the
+    # bounds of this location event, create a record of the visit
+    if task_periods.count() > 0:
+        task_period = task_periods[0]
+        LocationVisit.create(
+            compute_index=compute_index,
+            user_id=user_id,
+            task_index=task_period.task_index,
+            concern_index=task_period.concern_index,
+            start=activating_event.visit_date,
+            end=deactivating_event.visit_date,
+            url=activating_event.url,
+            title=activating_event.title,
+            tab_id=activating_event.tab_id,
+        )
 
 
 def compute_location_visits():
@@ -49,46 +90,43 @@ def compute_location_visits():
             .order_by(LocationEvent.visit_date.asc())
             )
 
-        activating_event = None
+        # This dictionary maps a tab-URL tuple to the event that made it active.
+        active_visits = {}
+        key = lambda event: (event.tab_id, event.url)
 
-        for location_event in location_events:
+        for event in location_events:
 
-            # For deactivating events that follow an activating event, we have
-            # reached the end of a visit to a URL.  Find out if there's an associated task and,
-            # if there is, store a record of this visit
-            if location_event.event_type in DEACTIVATING_EVENTS:
-                if activating_event is not None:
-                    task_periods = (
-                        TaskPeriod.select()
-                        .where(
-                            TaskPeriod.user_id == user_id,
-                            TaskPeriod.start < activating_event.visit_date,
-                            TaskPeriod.end > location_event.visit_date,
-                        )
-                    )
-                    # If we successfully fetched a task whose period matched the
-                    # bounds of this location event, create a record of the visit
-                    if task_periods.count() > 0:
-                        task_period = task_periods[0]
-                        LocationVisit.create(
+            # When a new page is loaded, any pages that don't have the new page's
+            # URL and tab are now no longer being visited.
+            if event.event_type in NEW_PAGE_EVENTS:
+                for (tab_id, url), activating_event in active_visits.items():
+                    if not (tab_id == event.tab_id and url == event.url):
+                        create_location_visit(
                             compute_index=compute_index,
                             user_id=user_id,
-                            task_index=task_period.task_index,
-                            concern_index=task_period.concern_index,
-                            start=activating_event.visit_date,
-                            end=location_event.visit_date,
-                            url=activating_event.url,
-                            title=activating_event.title,
+                            activating_event=activating_event,
+                            deactivating_event=event,
                         )
+                        del active_visits[(tab_id, url)]
 
-                # Set the activating event back to a null value so that we don't
-                # keep waiting for the end of an event.
-                activating_event = None
+            # If a tab or window has been deactivated, then end the visit to
+            # the location for the URL deactivated.
+            if event.event_type in DEACTIVATING_EVENTS:
+                if key(event) in active_visits:
+                    activating_event = active_visits[key(event)]
+                    create_location_visit(
+                        compute_index=compute_index,
+                        user_id=user_id,
+                        activating_event=activating_event,
+                        deactivating_event=event,
+                    )
+                    del active_visits[key(event)]
 
-            # If this event has a type that means a user started looking at a page,
-            # then save a reference to this event so we can construct
-            if location_event.event_type in ACTIVATING_EVENTS:
-                activating_event = location_event
+            # If a URL has been activated for a tab (and isn't yet in the list of activated
+            # URLs), then save it in the list of activated pages
+            if event.event_type in ACTIVATING_EVENTS:
+                if key(event) not in active_visits:
+                    active_visits[key(event)] = event
 
 
 def main(*args, **kwargs):

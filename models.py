@@ -91,6 +91,7 @@ class LocationEvent(ProxyModel):
     user_id = IntegerField()
     visit_date = DateTimeField()
     log_date = DateTimeField()
+    tab_id = IntegerField()
     tab_index = IntegerField()
     title = TextField()
     url = TextField()
@@ -137,6 +138,7 @@ class LocationVisit(ProxyModel):
     task_index = IntegerField(index=True)
     concern_index = IntegerField(index=True)
     url = TextField(index=True)
+    tab_id = IntegerField()
     title = TextField()
     start = DateTimeField()
     end = DateTimeField()
@@ -158,6 +160,8 @@ def init_database(db_type, config_filename=None):
             config['password'] = pg_config['dbpassword']
         if 'host' in pg_config:
             config['host'] = pg_config['host']
+        if 'port' in pg_config:
+            config['port'] = pg_config['port']
 
         db = PostgresqlDatabase(DATABASE_NAME, **config)
 

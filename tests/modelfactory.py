@@ -35,6 +35,7 @@ def create_location_event(**kwargs):
         'user_id': 0,
         'visit_date': datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
         'log_date': datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
+        'tab_id': 1,
         'tab_index': 1,
         'title': "Title",
         'url': "http://url.com",

@@ -204,6 +204,22 @@ class PackageComparison(ProxyModel):
         db_table = 'form_packagecomparison'
 
 
+class Postquestionnaire(ProxyModel):
+    ''' Questions we ask participants once they are finished with the study. '''
+
+    user_id = IntegerField()
+    concern_rank1 = TextField()
+    concern_rank2 = TextField()
+    concern_rank3 = TextField()
+    concern_rank4 = TextField()
+    concern_rank5 = TextField()
+    concern_rank6 = TextField()
+    likert_perception_change = IntegerField()
+
+    class Meta:
+        db_table = 'form_postquestionnaire'
+
+
 def init_database(db_type, config_filename=None):
 
     if db_type == 'postgres':

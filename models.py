@@ -91,7 +91,7 @@ class LocationEvent(ProxyModel):
     user_id = IntegerField()
     visit_date = DateTimeField()
     log_date = DateTimeField()
-    tab_id = IntegerField()
+    tab_id = TextField()
     tab_index = IntegerField()
     title = TextField()
     url = TextField()
@@ -138,10 +138,26 @@ class LocationVisit(ProxyModel):
     task_index = IntegerField(index=True)
     concern_index = IntegerField(index=True)
     url = TextField(index=True)
-    tab_id = IntegerField()
+    tab_id = TextField(index=True)
     title = TextField()
     start = DateTimeField()
     end = DateTimeField()
+
+
+class LocationRating(ProxyModel):
+    ''' A user rating of a location they found for a task. '''
+
+    # Keep a record of when this record was computed
+    compute_index = IntegerField(index=True)
+    date = DateTimeField(default=datetime.datetime.now)
+
+    user_id = IntegerField(index=True)
+    task_index = IntegerField(index=True)
+    concern_index = IntegerField(index=True)
+    url = TextField(index=True)
+    title = TextField()
+    rating = IntegerField(index=True)
+    visit_date = DateTimeField()
 
 
 def init_database(db_type, config_filename=None):
@@ -176,4 +192,5 @@ def create_tables():
     db_proxy.create_tables([
         TaskPeriod,
         LocationVisit,
+        LocationRating,
     ], safe=True)

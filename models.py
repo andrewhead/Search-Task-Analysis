@@ -220,6 +220,17 @@ class Postquestionnaire(ProxyModel):
         db_table = 'form_postquestionnaire'
 
 
+class Strategy(ProxyModel):
+    ''' Participants' self-reported strategies for search before a task. '''
+
+    user_id = IntegerField()
+    strategy = TextField()
+    question_index = IntegerField()
+
+    class Meta:
+        db_table = 'form_strategy'
+
+
 def init_database(db_type, config_filename=None):
 
     if db_type == 'postgres':

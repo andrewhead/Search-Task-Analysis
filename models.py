@@ -199,6 +199,8 @@ class PackageComparison(ProxyModel):
     stage = TextField()
     likert_preference = IntegerField()
     likert_quality = IntegerField()
+    na_likert_preference = BooleanField()
+    na_likert_quality = BooleanField()
 
     class Meta:
         db_table = 'form_packagecomparison'
@@ -215,6 +217,7 @@ class Postquestionnaire(ProxyModel):
     concern_rank5 = TextField()
     concern_rank6 = TextField()
     likert_perception_change = IntegerField()
+    na_likert_perception_change = BooleanField()
 
     class Meta:
         db_table = 'form_postquestionnaire'

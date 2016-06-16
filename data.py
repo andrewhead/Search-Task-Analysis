@@ -24,7 +24,7 @@ from compute import task_periods, location_visits, location_ratings
 # from migrate import
 from dump import location_visits as dump_location_visits,\
     location_ratings as dump_location_ratings, confidence_ratings, package_comparisons,\
-    package_quality_comparison, package_preference, concern_ranks, open_responses
+    package_quality_comparison, package_preference, concern_ranks, open_responses, na_responses
 
 
 COMMANDS = {
@@ -46,7 +46,7 @@ COMMANDS = {
         'modules': [
             dump_location_visits, dump_location_ratings, confidence_ratings,
             package_comparisons, package_quality_comparison, package_preference,
-            concern_ranks, open_responses,
+            concern_ranks, open_responses, na_responses,
         ],
     },
 }

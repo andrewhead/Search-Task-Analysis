@@ -198,9 +198,11 @@ class PackageComparison(ProxyModel):
     user_id = IntegerField()
     stage = TextField()
     likert_preference = IntegerField()
-    likert_quality = IntegerField()
+    likert_quality_documentation = IntegerField()
+    likert_quality_community = IntegerField()
     na_likert_preference = BooleanField()
-    na_likert_quality = BooleanField()
+    na_likert_quality_documentation = BooleanField()
+    na_likert_quality_community = BooleanField()
 
     class Meta:
         db_table = 'form_packagecomparison'

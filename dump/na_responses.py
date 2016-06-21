@@ -29,7 +29,10 @@ def main(*args, **kwargs):
     for comparison in PackageComparison.select():
         yield [
             [comparison.user_id, "Preference " + comparison.stage, comparison.na_likert_preference],
-            [comparison.user_id, "Quality " + comparison.stage, comparison.na_likert_quality],
+            [comparison.user_id, "Documentation Quality " + comparison.stage,
+                comparison.na_likert_quality_documentation],
+            [comparison.user_id, "Community Quality " + comparison.stage,
+                comparison.na_likert_quality_community],
         ]
 
     for postquestionnaire in Postquestionnaire.select():

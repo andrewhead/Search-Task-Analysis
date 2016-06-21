@@ -28,7 +28,7 @@ for concern in CONCERNS_SHORTHAND:
     column_names.append("Evidence of " + concern)
 
 
-@dump_csv(__name__, column_names)
+@dump_csv(__name__, column_names, delimiter='|')
 def main(*args, **kwargs):
 
     # Fetch distinct user IDs from the question data

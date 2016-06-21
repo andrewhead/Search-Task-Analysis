@@ -51,11 +51,15 @@ def dump_text(dest_basename):
     )
 
 
-def dump_csv(dest_basename, column_names):
+def dump_csv(dest_basename, column_names, delimiter=','):
     ''' Iterate over a generator function to dump the text lines it yields to a file. '''
     return functools.partial(
         _wrap_harvest_func_with_dump_func,
-        dump_func=functools.partial(run_and_dump_csv, column_names=column_names),
+        dump_func=functools.partial(
+            run_and_dump_csv,
+            column_names=column_names,
+            delimiter=delimiter,
+        ),
         dest_basename=dest_basename,
         file_extension='.csv',
     )
@@ -84,7 +88,7 @@ def run_and_dump_text(harvest_func, dump_file, *args, **kwargs):
             dump_file.write(line + '\n')
 
 
-def run_and_dump_csv(harvest_func, dump_file, column_names, *args, **kwargs):
+def run_and_dump_csv(harvest_func, dump_file, column_names, delimiter, *args, **kwargs):
 
     def make_csv_line(record):
         # Convert all elements of the record into good CSV:
@@ -92,12 +96,14 @@ def run_and_dump_csv(harvest_func, dump_file, column_names, *args, **kwargs):
         # convert all other data types to writable strings.
         for index, item in enumerate(record):
             if type(item) == str or type(item) == unicode:
-                record[index] = '"' + item + '"'
+                escaped_string = item.replace('\r\n', "<newline>")
+                escaped_string = escaped_string.replace('\n', "<newline>")
+                record[index] = '"' + escaped_string + '"'
             elif isinstance(item, datetime):
                 record[index] = item.isoformat()
             else:
                 record[index] = str(item)
-        return ','.join(record) + '\n'
+        return delimiter.join(record) + '\n'
 
     dump_file.write(make_csv_line(column_names))
 

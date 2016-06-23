@@ -20,7 +20,7 @@ def main(*args, **kwargs):
         .select(
             PackageComparison.user_id,
             PackageComparison.stage,
-            PackageComparison.likert_quality,
+            PackageComparison.likert_quality_community,
             PackagePair.package1,
             PackagePair.package2,
         )
@@ -32,7 +32,7 @@ def main(*args, **kwargs):
         yield [[
             comparison.user_id,
             comparison.stage,
-            comparison.likert_quality,
+            comparison.likert_quality_community,
             comparison.package1,
             comparison.package2,
         ]]
@@ -41,4 +41,4 @@ def main(*args, **kwargs):
 
 
 def configure_parser(parser):
-    parser.description = "Dump records of participants' ratings comparing packages' quality."
+    parser.description = "Dump participants' ratings comparing packages' community quality."

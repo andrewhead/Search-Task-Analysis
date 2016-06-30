@@ -106,3 +106,69 @@ class ComputeLocationRatingTest(TestCase):
         rating = ratings[0]
         self.assertEqual(rating.user_id, 0)
         self.assertEqual(rating.task_index, 3)
+
+    def test_by_default_associate_rating_with_latest_computed_task_periods(self):
+
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            event_type="Rating: 0",
+            url="http://url1.com",
+            user_id=0,
+        )
+
+        # All three of these tasks have the same (matching) periods.
+        # But the second one was the latest one to be computed (compute_index=2)
+        create_task_period(
+            compute_index=0,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=1,
+        )
+        create_task_period(
+            compute_index=2,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=2,
+        )
+        create_task_period(
+            compute_index=1,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=3,
+        )
+
+        compute_location_ratings()
+        rating = LocationRating.select()[0]
+        self.assertEqual(rating.task_index, 2)
+
+    def test_if_task_compute_index_specified_only_match_tasks_with_that_index(self):
+
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            event_type="Rating: 0",
+            url="http://url1.com",
+            user_id=0,
+        )
+
+        create_task_period(
+            compute_index=0,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=1,
+        )
+        create_task_period(
+            compute_index=2,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=2,
+        )
+        create_task_period(
+            compute_index=1,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=3,
+        )
+
+        compute_location_ratings(task_compute_index=1)
+        rating = LocationRating.select()[0]
+        self.assertEqual(rating.task_index, 3)

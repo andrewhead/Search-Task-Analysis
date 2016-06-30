@@ -11,19 +11,6 @@ from models import LocationVisit
 
 
 logger = logging.getLogger('data')
-DOMAINS = [
-    {'domain': "stackoverflow.com", 'name': "Stack Overflow"},
-    {'domain': "github.com", 'name': "GitHub"},
-    {'domain': "reddit.com", 'name': "Reddit"},
-    {'domain': "google.com", 'name': "Google"},
-    {'domain': "keras.io", 'name': "Keras"},
-    {'domain': "nose2.readthedocs.io", 'name': "Nose 2 docs"},
-    {'domain': "nose.readthedocs.io", 'name': "Nose docs"},
-    {'domain': "pytest.org", 'name': "PyTest"},
-    {'domain': "lasagne.readthedocs.io", 'name': "Lasagne docs"},
-    {'domain': "panda3d.org", 'name': "Panda3D"},
-    {'domain': "pygame.org", 'name': "Pygame"},
-]
 
 
 @dump_csv(__name__, [

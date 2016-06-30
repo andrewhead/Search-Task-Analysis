@@ -28,12 +28,14 @@ class ComputeLocationVisitsTest(TestCase):
         create_location_event(
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
+            tab_id='1',
             url="http://url1.com"
         )
         create_location_event(
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
-            event_type="Tab deactivated",
-            url="http://url1.com"
+            event_type="Tab activated",
+            tab_id='2',
+            url="http://url2.com"
         )
         create_task_period(
             start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
@@ -61,12 +63,14 @@ class ComputeLocationVisitsTest(TestCase):
         create_location_event(
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
+            tab_id='1',
             url="http://url1.com"
         )
         create_location_event(
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 6, 0),
-            event_type="Tab deactivated",
-            url="http://url1.com"
+            event_type="Tab activated",
+            tab_id='2',
+            url="http://url2.com"
         )
         create_task_period(
             start=datetime.datetime(2000, 1, 1, 11, 0, 0, 0),
@@ -93,21 +97,25 @@ class ComputeLocationVisitsTest(TestCase):
         create_location_event(
             visit_date=datetime.datetime(2000, 1, 1, 11, 59, 1, 0),
             event_type="Tab activated",
+            tab_id='1',
             url="http://url1.com"
         )
         create_location_event(
             visit_date=datetime.datetime(2000, 1, 1, 12, 1, 0, 0),
-            event_type="Tab deactivated",
+            event_type="Tab activated",
+            tab_id='2',
             url="http://url1.com"
         )
         create_location_event(
             visit_date=datetime.datetime(2000, 1, 1, 12, 3, 0, 0),
             event_type="Tab activated",
+            tab_id='1',
             url="http://url2.com"
         )
         create_location_event(
             visit_date=datetime.datetime(2000, 1, 1, 12, 3, 0, 0),
-            event_type="Tab deactivated",
+            event_type="Tab activated",
+            tab_id='2',
             url="http://url2.com"
         )
         create_task_period(
@@ -123,12 +131,14 @@ class ComputeLocationVisitsTest(TestCase):
             user_id=0,
             visit_date=datetime.datetime(2000, 1, 1, 11, 0, 1, 0),
             event_type="Tab activated",
+            tab_id='1',
             url="http://url1.com"
         )
         create_location_event(
             user_id=0,
             visit_date=datetime.datetime(2000, 1, 1, 11, 0, 2, 0),
-            event_type="Tab deactivated",
+            event_type="Tab activated",
+            tab_id='2',
             url="http://url1.com"
         )
         create_task_period(
@@ -139,37 +149,29 @@ class ComputeLocationVisitsTest(TestCase):
 
         self.assertEqual(LocationVisit.select().count(), 0)
 
-    def test_chain_multiple_location_visits(self):
+    def test_chain_multiple_location_visits_by_activations(self):
 
+        create_task_period(
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+        )
         create_location_event(
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
             url="http://url1.com",
-            tab_id=1,
-        )
-        create_location_event(
-            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
-            event_type="Tab deactivated",
-            url="http://url1.com",
-            tab_id=1,
+            tab_id='1',
         )
         create_location_event(
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             event_type="Tab activated",
             url="http://url2.com",
-            tab_id=2,
+            tab_id='2',
         )
         create_location_event(
-            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 5, 0),
-            event_type="Tab deactivated",
-            url="http://url2.com",
-            tab_id=2,
-        )
-        create_task_period(
-            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
-            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
-            task_index=3,
-            concern_index=5,
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 3, 0),
+            event_type="Tab activated",
+            url="http://url3.com",
+            tab_id='3',
         )
 
         compute_location_visits()
@@ -178,6 +180,95 @@ class ComputeLocationVisitsTest(TestCase):
         urls = [visit.url for visit in LocationVisit.select()]
         self.assertIn("http://url1.com", urls)
         self.assertIn("http://url2.com", urls)
+
+    def test_chain_multiple_location_visits_by_page_loads(self):
+
+        create_task_period(
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            event_type="Tab activated",
+            url="http://url1.com",
+            tab_id='1',
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
+            event_type="Tab content loaded (pageshow)",
+            url="http://url2.com",
+            tab_id='1',
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 3, 0),
+            event_type="Tab content loaded (ready)",
+            url="http://url3.com",
+            tab_id='1',
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 4, 0),
+            event_type="Tab content loaded (load)",
+            url="http://url4.com",
+            tab_id='1',
+        )
+
+        compute_location_visits()
+        visits = LocationVisit.select()
+        self.assertEqual(visits.count(), 3)
+        urls = [visit.url for visit in LocationVisit.select()]
+        self.assertIn("http://url1.com", urls)
+        self.assertIn("http://url2.com", urls)
+        self.assertIn("http://url3.com", urls)
+
+    def test_ignore_consecutive_page_loads_of_same_url(self):
+
+        create_task_period(
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            event_type="Tab activated",
+            url="http://url1.com",
+            tab_id='1',
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
+            event_type="Tab content loaded (pageshow)",
+            url="http://url2.com",
+            tab_id='1',
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 3, 0),
+            event_type="Tab content loaded (ready)",
+            url="http://url2.com",
+            tab_id='1',
+        )
+
+        compute_location_visits()
+        visits = LocationVisit.select()
+        self.assertEqual(visits.count(), 1)
+        urls = [visit.url for visit in LocationVisit.select()]
+        self.assertIn("http://url1.com", urls)
+
+    def test_ignore_content_loaded_in_other_tabs(self):
+
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            event_type="Tab activated",
+            url="http://url1.com",
+            tab_id='1',
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
+            event_type="Tab content loaded (pageshow)",
+            url="http://url2.com",
+            tab_id='2',
+        )
+
+        compute_location_visits()
+        visits = LocationVisit.select()
+        self.assertEqual(visits.count(), 0)
 
     def test_acceptable_activating_location_events(self):
 
@@ -188,141 +279,26 @@ class ComputeLocationVisitsTest(TestCase):
         )
 
         for activating_event_type in [
-                "Tab opened",
-                "Tab content loaded (pageshow)",
                 "Tab activated",
                 "Window activated",
                 ]:
             create_location_event(
                 visit_date=time,
                 event_type=activating_event_type,
+                tab_id='1',
             )
             time += datetime.timedelta(seconds=1)
             create_location_event(
                 visit_date=time,
-                event_type="Window deactivated",  # deactivating event type
+                event_type="Window deactivated",
+                tab_id='1',
             )
             time += datetime.timedelta(seconds=1)
 
         compute_location_visits()
-        self.assertEqual(LocationVisit.select().count(), 4)
+        self.assertEqual(LocationVisit.select().count(), 2)
 
-    def test_acceptable_deactivating_location_events(self):
-
-        time = datetime.datetime(2000, 1, 1, 12, 0, 1, 0)
-
-        # For every user ID we could foresee having for this test, create a record of
-        # of a task being completed for this user.
-        for user_id in range(0, 10):
-            create_task_period(
-                start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
-                end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
-                user_id=user_id,
-            )
-
-        # We vary the user ID with each iteration to start fresh, so that
-        # every user has just one activating event and just one deactivating
-        # event (in other words, just one visit).
-        for user_id, deactivating_event_type in enumerate([
-                "Tab closed",
-                "Tab deactivated",
-                "Window deactivated",
-                ]):
-            create_location_event(
-                user_id=user_id,
-                visit_date=time,
-                event_type="Tab activated",  # activating event type
-            )
-            time += datetime.timedelta(seconds=1)
-            create_location_event(
-                user_id=user_id,
-                visit_date=time,
-                event_type=deactivating_event_type,
-            )
-            time += datetime.timedelta(seconds=1)
-
-        compute_location_visits()
-        self.assertEqual(LocationVisit.select().count(), 3)
-
-    def test_end_location_visit_when_another_page_loaded(self):
-
-        time = datetime.datetime(2000, 1, 1, 12, 0, 1, 0)
-
-        # For every user ID we could foresee having for this test, create a record of
-        # of a task being completed for this user.
-        for user_id in range(0, 10):
-            create_task_period(
-                start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
-                end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
-                user_id=user_id,
-            )
-
-        # We vary the user ID with each iteration to start fresh, so that
-        # every user has just one activating event and just one deactivating
-        # event (in other words, just one visit).
-        for user_id, deactivating_event_type in enumerate([
-                "Tab content loaded (ready)",
-                "Tab content loaded (load)",
-                "Tab content loaded (pageshow)",
-                ]):
-            create_location_event(
-                user_id=user_id,
-                visit_date=time,
-                event_type="Tab activated",  # activating event type
-                url="http://url1.com",
-            )
-            time += datetime.timedelta(seconds=1)
-            create_location_event(
-                user_id=user_id,
-                visit_date=time,
-                event_type=deactivating_event_type,
-                url="http://url2.com",
-            )
-            time += datetime.timedelta(seconds=1)
-
-        compute_location_visits()
-        self.assertEqual(LocationVisit.select().count(), 3)
-
-    def test_dont_end_location_visit_when_a_page_is_reloaded(self):
-
-        time = datetime.datetime(2000, 1, 1, 12, 0, 1, 0)
-
-        # For every user ID we could foresee having for this test, create a record of
-        # of a task being completed for this user.
-        for user_id in range(0, 10):
-            create_task_period(
-                start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
-                end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
-                user_id=user_id,
-            )
-
-        # We vary the user ID with each iteration to start fresh, so that
-        # every user has just one activating event and just one deactivating
-        # event (in other words, just one visit).
-        for user_id, deactivating_event_type in enumerate([
-                "Tab content loaded (ready)",
-                "Tab content loaded (load)",
-                "Tab content loaded (pageshow)",
-                ]):
-            create_location_event(
-                user_id=user_id,
-                visit_date=time,
-                event_type="Tab activated",  # activating event type
-                url="http://url1.com",
-            )
-            time += datetime.timedelta(seconds=1)
-            create_location_event(
-                user_id=user_id,
-                visit_date=time,
-                event_type=deactivating_event_type,
-                url="http://url1.com",
-            )
-            time += datetime.timedelta(seconds=1)
-
-        compute_location_visits()
-        self.assertEqual(LocationVisit.select().count(), 0)
-
-    def test_handle_switch_between_tabs_with_same_page_as_new_visit(self):
+    def test_window_deactivated_flushes_old_location(self):
 
         time = datetime.datetime(2000, 1, 1, 12, 0, 1, 0)
 
@@ -330,35 +306,26 @@ class ComputeLocationVisitsTest(TestCase):
             start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
             end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
         )
-
-        # We have seen that sometimes a tab deactivation of the previous tab
-        # is reported slightly after the activation of a newly-activated tab.
-        # This test case handles this pathological case, by making sure that
-        # each tab is considered independently of every other tab.
         create_location_event(
             visit_date=time,
             event_type="Tab activated",
-            url="http://url.com",
-            tab_id=1,
         )
         create_location_event(
-            visit_date=time + datetime.timedelta(seconds=3),
+            visit_date=time + datetime.timedelta(seconds=1),
+            event_type="Window deactivated",
+        )
+        create_location_event(
+            visit_date=time + datetime.timedelta(seconds=2),
             event_type="Tab activated",
-            url="http://url.com",
-            tab_id=2,
-        )
-        create_location_event(
-            visit_date=time + datetime.timedelta(seconds=4),
-            event_type="Tab deactivated",
-            url="http://url.com",
-            tab_id=1,
-        )
-        create_location_event(
-            visit_date=time + datetime.timedelta(seconds=3),
-            event_type="Tab deactivated",
-            url="http://url.com",
-            tab_id=2,
         )
 
         compute_location_visits()
-        self.assertEqual(LocationVisit.select().count(), 2)
+
+        # Make sure that only one event was created---when the tab was deactivated
+        self.assertEqual(LocationVisit.select().count(), 1)
+
+        # Make sure that the event that was created eneded when the window was
+        # deactivated, and not when the next tab was activated.
+        visits = LocationVisit.select()
+        visit = visits[0]
+        self.assertEqual(visit.end, datetime.datetime(2000, 1, 1, 12, 0, 2, 0))

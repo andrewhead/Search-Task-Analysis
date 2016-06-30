@@ -11,22 +11,18 @@ from models import TaskPeriod, LocationEvent, LocationVisit
 logger = logging.getLogger('data')
 
 
-# These events suggest that a URL has been 'activated' and is now being visited
+# These events suggest that a tab has been 'activated' and is now being visited
 ACTIVATING_EVENTS = [
-    "Tab opened",
-    "Tab content loaded (pageshow)",
     "Tab activated",
     "Window activated",
 ]
 
-# For the current URL, these events suggest it is no longer being visited
+# These event suggest that no tabs are being visited anymore.
 DEACTIVATING_EVENTS = [
-    "Tab closed",
-    "Tab deactivated",
     "Window deactivated",
 ]
 
-# For a *new* URL, these events suggest that all past URLs are no longer being visited
+# These events suggest that a new URL has been loaded into a tab
 NEW_PAGE_EVENTS = [
     "Tab content loaded (load)",
     "Tab content loaded (ready)",
@@ -91,42 +87,51 @@ def compute_location_visits():
             )
 
         # This dictionary maps a tab-URL tuple to the event that made it active.
-        active_visits = {}
-        key = lambda event: (event.tab_id, event.url)
+        active_tab_id = None
+        active_tab_latest_url_event = None
 
         for event in location_events:
 
-            # When a new page is loaded, any pages that don't have the new page's
-            # URL and tab are now no longer being visited.
+            # When a new page is loaded in the current tab, this is the end of the
+            # last event and the start of a new one (that will be in the same tab).
             if event.event_type in NEW_PAGE_EVENTS:
-                for (tab_id, url), activating_event in active_visits.items():
-                    if not (tab_id == event.tab_id and url == event.url):
+                if active_tab_id is not None and event.tab_id == active_tab_id:
+                    if event.url != active_tab_latest_url_event.url:
                         create_location_visit(
                             compute_index=compute_index,
                             user_id=user_id,
-                            activating_event=activating_event,
+                            activating_event=active_tab_latest_url_event,
                             deactivating_event=event,
                         )
-                        del active_visits[(tab_id, url)]
+                        active_tab_latest_url_event = event
 
-            # If a tab or window has been deactivated, then end the visit to
-            # the location for the URL deactivated.
+            # If the window has been deactivated, then end the visit in the current tab
             if event.event_type in DEACTIVATING_EVENTS:
-                if key(event) in active_visits:
-                    activating_event = active_visits[key(event)]
+                if active_tab_id is not None:
                     create_location_visit(
                         compute_index=compute_index,
                         user_id=user_id,
-                        activating_event=activating_event,
+                        activating_event=active_tab_latest_url_event,
                         deactivating_event=event,
                     )
-                    del active_visits[key(event)]
+                    active_tab_id = None
+                    active_tab_latest_url_event = None
 
-            # If a URL has been activated for a tab (and isn't yet in the list of activated
-            # URLs), then save it in the list of activated pages
+            # If a tab or window has been activated, that tab is now active.
             if event.event_type in ACTIVATING_EVENTS:
-                if key(event) not in active_visits:
-                    active_visits[key(event)] = event
+
+                # End any visits in progress for other tabs
+                if active_tab_id is not None:
+                    create_location_visit(
+                        compute_index=compute_index,
+                        user_id=user_id,
+                        activating_event=active_tab_latest_url_event,
+                        deactivating_event=event,
+                    )
+
+                # Set the new active tab
+                active_tab_id = event.tab_id
+                active_tab_latest_url_event = event
 
 
 def main(*args, **kwargs):

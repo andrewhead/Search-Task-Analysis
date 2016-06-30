@@ -49,7 +49,7 @@ def compute_task_periods():
             if question_event.event_type == 'get task':
                 start_task_event = question_event
 
-            elif question_event.event_type == 'post task':
+            elif question_event.event_type == 'post responses':
 
                 if start_task_event is not None:
 

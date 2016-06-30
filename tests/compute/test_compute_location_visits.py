@@ -26,12 +26,14 @@ class ComputeLocationVisitsTest(TestCase):
 
         # Setup: create two location events bounding a single visit
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
             tab_id='1',
             url="http://url1.com"
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             event_type="Tab activated",
             tab_id='2',
@@ -58,15 +60,91 @@ class ComputeLocationVisitsTest(TestCase):
         self.assertEqual(visit.end, datetime.datetime(2000, 1, 1, 12, 0, 2, 0))
         self.assertEqual(visit.url, "http://url1.com")
 
+    def test_visit_times_based_on_visit_dates_not_log_dates(self):
+
+        # We've found browsers are rarely synced with the server time.
+        # To preserve the timing as it appeared to the user, we save the
+        # times that they visited each location in the browser.
+        # While we associate visits with tasks based on the logging date (as that
+        # is most likely to match well on the server side), we store all visits
+        # with times seen by the browser.
+
+        create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            visit_date=datetime.datetime(2000, 1, 1, 10, 0, 1, 0),
+            event_type="Tab activated",
+            tab_id='1',
+            url="http://url1.com"
+        )
+        create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
+            visit_date=datetime.datetime(2000, 1, 1, 10, 0, 2, 0),
+            event_type="Tab activated",
+            tab_id='2',
+            url="http://url2.com"
+        )
+        create_task_period(
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=3,
+            concern_index=5,
+        )
+
+        compute_location_visits()
+        visits = LocationVisit.select()
+        visit = visits[0]
+        self.assertEqual(visit.start, datetime.datetime(2000, 1, 1, 10, 0, 1, 0))
+        self.assertEqual(visit.end, datetime.datetime(2000, 1, 1, 10, 0, 2, 0))
+
+    def test_order_events_by_visit_date(self):
+
+        # We want to handle the case where the server may receive browser events
+        # in a different order than the browser encounters them.  So, when we order
+        # the events that we've found for a task, they get ordered in "browser order."
+        # In this test case, we create jumbled server log order, but the browser
+        # order needs to come through for the events created.
+
+        # Logged first, visited second
+        create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            visit_date=datetime.datetime(2000, 1, 1, 10, 0, 2, 0),
+            event_type="Tab activated",
+            tab_id='1',
+            url="http://url1.com"
+        )
+
+        # Logged second, visited first
+        create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
+            visit_date=datetime.datetime(2000, 1, 1, 10, 0, 1, 0),
+            event_type="Tab activated",
+            tab_id='2',
+            url="http://url2.com"
+        )
+
+        create_task_period(
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=3,
+            concern_index=5,
+        )
+
+        compute_location_visits()
+        visits = LocationVisit.select()
+        visit = visits[0]
+        self.assertEqual(visit.url, "http://url2.com")
+
     def test_associate_location_visit_with_task_period_it_occured_within(self):
 
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
             tab_id='1',
             url="http://url1.com"
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 6, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 6, 0),
             event_type="Tab activated",
             tab_id='2',
@@ -95,12 +173,14 @@ class ComputeLocationVisitsTest(TestCase):
     def test_by_default_associate_visit_with_latest_computed_task_periods(self):
 
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
             tab_id='1',
             url="http://url1.com"
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 6, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 6, 0),
             event_type="Tab activated",
             tab_id='2',
@@ -135,12 +215,14 @@ class ComputeLocationVisitsTest(TestCase):
     def test_if_task_compute_index_specified_only_match_tasks_with_that_index(self):
 
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
             tab_id='1',
             url="http://url1.com"
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 6, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 6, 0),
             event_type="Tab activated",
             tab_id='2',
@@ -174,25 +256,29 @@ class ComputeLocationVisitsTest(TestCase):
     def test_make_no_location_visit_if_it_doesnt_start_after_or_end_before_end_of_task(self):
 
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 11, 59, 1, 0),
             visit_date=datetime.datetime(2000, 1, 1, 11, 59, 1, 0),
             event_type="Tab activated",
             tab_id='1',
             url="http://url1.com"
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 1, 0, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 1, 0, 0),
             event_type="Tab activated",
             tab_id='2',
             url="http://url1.com"
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 3, 0, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 3, 0, 0),
             event_type="Tab activated",
             tab_id='1',
             url="http://url2.com"
         )
         create_location_event(
-            visit_date=datetime.datetime(2000, 1, 1, 12, 3, 0, 0),
+            log_date=datetime.datetime(2000, 1, 1, 12, 5, 0, 0),
+            visit_date=datetime.datetime(2000, 1, 1, 12, 5, 0, 0),
             event_type="Tab activated",
             tab_id='2',
             url="http://url2.com"
@@ -208,6 +294,7 @@ class ComputeLocationVisitsTest(TestCase):
 
         create_location_event(
             user_id=0,
+            log_date=datetime.datetime(2000, 1, 1, 11, 0, 1, 0),
             visit_date=datetime.datetime(2000, 1, 1, 11, 0, 1, 0),
             event_type="Tab activated",
             tab_id='1',
@@ -215,6 +302,7 @@ class ComputeLocationVisitsTest(TestCase):
         )
         create_location_event(
             user_id=0,
+            log_date=datetime.datetime(2000, 1, 1, 11, 0, 2, 0),
             visit_date=datetime.datetime(2000, 1, 1, 11, 0, 2, 0),
             event_type="Tab activated",
             tab_id='2',
@@ -235,18 +323,21 @@ class ComputeLocationVisitsTest(TestCase):
             end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
             url="http://url1.com",
             tab_id='1',
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             event_type="Tab activated",
             url="http://url2.com",
             tab_id='2',
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 3, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 3, 0),
             event_type="Tab activated",
             url="http://url3.com",
@@ -267,24 +358,28 @@ class ComputeLocationVisitsTest(TestCase):
             end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
             url="http://url1.com",
             tab_id='1',
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             event_type="Tab content loaded (pageshow)",
             url="http://url2.com",
             tab_id='1',
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 3, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 3, 0),
             event_type="Tab content loaded (ready)",
             url="http://url3.com",
             tab_id='1',
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 4, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 4, 0),
             event_type="Tab content loaded (load)",
             url="http://url4.com",
@@ -306,18 +401,21 @@ class ComputeLocationVisitsTest(TestCase):
             end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
             url="http://url1.com",
             tab_id='1',
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             event_type="Tab content loaded (pageshow)",
             url="http://url2.com",
             tab_id='1',
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 3, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 3, 0),
             event_type="Tab content loaded (ready)",
             url="http://url2.com",
@@ -333,12 +431,14 @@ class ComputeLocationVisitsTest(TestCase):
     def test_ignore_content_loaded_in_other_tabs(self):
 
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
             event_type="Tab activated",
             url="http://url1.com",
             tab_id='1',
         )
         create_location_event(
+            log_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             visit_date=datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
             event_type="Tab content loaded (pageshow)",
             url="http://url2.com",
@@ -362,13 +462,13 @@ class ComputeLocationVisitsTest(TestCase):
                 "Window activated",
                 ]:
             create_location_event(
-                visit_date=time,
+                log_date=time,
                 event_type=activating_event_type,
                 tab_id='1',
             )
             time += datetime.timedelta(seconds=1)
             create_location_event(
-                visit_date=time,
+                log_date=time,
                 event_type="Window deactivated",
                 tab_id='1',
             )
@@ -383,17 +483,20 @@ class ComputeLocationVisitsTest(TestCase):
 
         create_task_period(
             start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
-            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 3, 0, 0),
         )
         create_location_event(
+            log_date=time,
             visit_date=time,
             event_type="Tab activated",
         )
         create_location_event(
+            log_date=time + datetime.timedelta(seconds=1),
             visit_date=time + datetime.timedelta(seconds=1),
             event_type="Window deactivated",
         )
         create_location_event(
+            log_date=time + datetime.timedelta(seconds=2),
             visit_date=time + datetime.timedelta(seconds=2),
             event_type="Tab activated",
         )

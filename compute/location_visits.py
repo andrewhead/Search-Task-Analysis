@@ -11,6 +11,12 @@ from models import TaskPeriod, LocationEvent, LocationVisit
 logger = logging.getLogger('data')
 
 
+# We start at task 1 instead of 0 for now, as our analysis hasn't yet
+# included any of the preliminary search tasks.
+TASK_COUNT = 6
+FIRST_TASK = 1
+TASK_RANGE = range(FIRST_TASK, FIRST_TASK + TASK_COUNT)
+
 # These events suggest that a tab has been 'activated' and is now being visited
 ACTIVATING_EVENTS = [
     "Tab activated",
@@ -31,46 +37,25 @@ NEW_PAGE_EVENTS = [
 
 
 def create_location_visit(
-        compute_index, task_compute_index, user_id,
+        compute_index, task_period, user_id,
         activating_event, deactivating_event):
     '''
     Create a record of the start and end of a visit to a URL within a tab.
     Note that while an `activating_event` will necessarily be associated with the URL
     and page title for the visited page, the deactivating event may be associated
     with a different URL and page.
-
-    The `task_compute_index` lets us associate this visit only with a certain round
-    of the tasks that have been computed (instead of scanning over all matching
-    tasks, which may have been computed multiple times).
     '''
-
-    # When a visit to a URL is complete, find out if there's an associated task and,
-    # if there is, store a record of this visit
-    task_periods = (
-        TaskPeriod.select()
-        .where(
-            TaskPeriod.compute_index == task_compute_index,
-            TaskPeriod.user_id == user_id,
-            TaskPeriod.start < activating_event.visit_date,
-            TaskPeriod.end > deactivating_event.visit_date,
-        )
+    LocationVisit.create(
+        compute_index=compute_index,
+        user_id=user_id,
+        task_index=task_period.task_index,
+        concern_index=task_period.concern_index,
+        start=activating_event.visit_date,
+        end=deactivating_event.visit_date,
+        url=activating_event.url,
+        title=activating_event.title,
+        tab_id=activating_event.tab_id,
     )
-
-    # If we successfully fetched a task whose period matched the
-    # bounds of this location event, create a record of the visit
-    if task_periods.count() > 0:
-        task_period = task_periods[0]
-        LocationVisit.create(
-            compute_index=compute_index,
-            user_id=user_id,
-            task_index=task_period.task_index,
-            concern_index=task_period.concern_index,
-            start=activating_event.visit_date,
-            end=deactivating_event.visit_date,
-            url=activating_event.url,
-            title=activating_event.title,
-            tab_id=activating_event.tab_id,
-        )
 
 
 def compute_location_visits(task_compute_index=None):
@@ -90,63 +75,84 @@ def compute_location_visits(task_compute_index=None):
     # Compute the time that each user spends in each question
     for user_id in range(0, max_user_id + 1):
 
-        # Fetch the events for all locations the user has visited
-        location_events = (
-            LocationEvent
-            .select()
-            .where(LocationEvent.user_id == user_id)
-            .order_by(LocationEvent.visit_date.asc())
+        # Visit all tasks for each user
+        for task_index in TASK_RANGE:
+
+            # Fetch the period of time for this task
+            task_periods = (
+                TaskPeriod.select()
+                .where(
+                    TaskPeriod.compute_index == task_compute_index,
+                    TaskPeriod.task_index == task_index,
+                    TaskPeriod.user_id == user_id,
+                )
+            )
+            if task_periods.count() < 1:
+                continue
+            task_period = task_periods[0]
+
+            # Fetch the events for all locations the user has visited during this task
+            location_events = (
+                LocationEvent
+                .select()
+                .where(
+                    LocationEvent.user_id == user_id,
+                    LocationEvent.log_date >= task_period.start,
+                    LocationEvent.log_date <= task_period.end,
+                )
+                .order_by(LocationEvent.visit_date.asc())
             )
 
-        # This dictionary maps a tab-URL tuple to the event that made it active.
-        active_tab_id = None
-        active_tab_latest_url_event = None
+            # In the space below, we assemble "visits" from sequences of events.
+            # This dictionary maps a tab-URL tuple to the event that made it active.
+            active_tab_id = None
+            active_tab_latest_url_event = None
 
-        for event in location_events:
+            for event in location_events:
 
-            # When a new page is loaded in the current tab, this is the end of the
-            # last event and the start of a new one (that will be in the same tab).
-            if event.event_type in NEW_PAGE_EVENTS:
-                if active_tab_id is not None and event.tab_id == active_tab_id:
-                    if event.url != active_tab_latest_url_event.url:
+                # When a new page is loaded in the current tab, this is the end of the
+                # last event and the start of a new one (that will be in the same tab).
+                if event.event_type in NEW_PAGE_EVENTS:
+                    if active_tab_id is not None and event.tab_id == active_tab_id:
+                        if event.url != active_tab_latest_url_event.url:
+                            create_location_visit(
+                                compute_index=compute_index,
+                                task_period=task_period,
+                                user_id=user_id,
+                                activating_event=active_tab_latest_url_event,
+                                deactivating_event=event,
+                            )
+                            active_tab_latest_url_event = event
+
+                # If the window has been deactivated, then end the visit in the current tab
+                if event.event_type in DEACTIVATING_EVENTS:
+                    if active_tab_id is not None:
                         create_location_visit(
                             compute_index=compute_index,
-                            task_compute_index=task_compute_index,
+                            task_period=task_period,
                             user_id=user_id,
                             activating_event=active_tab_latest_url_event,
                             deactivating_event=event,
                         )
-                        active_tab_latest_url_event = event
+                        active_tab_id = None
+                        active_tab_latest_url_event = None
 
-            # If the window has been deactivated, then end the visit in the current tab
-            if event.event_type in DEACTIVATING_EVENTS:
-                if active_tab_id is not None:
-                    create_location_visit(
-                        compute_index=compute_index,
-                        task_compute_index=task_compute_index,
-                        user_id=user_id,
-                        activating_event=active_tab_latest_url_event,
-                        deactivating_event=event,
-                    )
-                    active_tab_id = None
-                    active_tab_latest_url_event = None
+                # If a tab or window has been activated, that tab is now active.
+                if event.event_type in ACTIVATING_EVENTS:
 
-            # If a tab or window has been activated, that tab is now active.
-            if event.event_type in ACTIVATING_EVENTS:
+                    # End any visits in progress for other tabs
+                    if active_tab_id is not None:
+                        create_location_visit(
+                            compute_index=compute_index,
+                            task_period=task_period,
+                            user_id=user_id,
+                            activating_event=active_tab_latest_url_event,
+                            deactivating_event=event,
+                        )
 
-                # End any visits in progress for other tabs
-                if active_tab_id is not None:
-                    create_location_visit(
-                        compute_index=compute_index,
-                        task_compute_index=task_compute_index,
-                        user_id=user_id,
-                        activating_event=active_tab_latest_url_event,
-                        deactivating_event=event,
-                    )
-
-                # Set the new active tab
-                active_tab_id = event.tab_id
-                active_tab_latest_url_event = event
+                    # Set the new active tab
+                    active_tab_id = event.tab_id
+                    active_tab_latest_url_event = event
 
 
 def main(task_compute_index, *args, **kwargs):

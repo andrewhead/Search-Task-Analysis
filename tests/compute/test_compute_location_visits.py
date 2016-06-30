@@ -92,6 +92,85 @@ class ComputeLocationVisitsTest(TestCase):
         visit = LocationVisit.select()[0]
         self.assertEqual(visit.task_index, 2)
 
+    def test_by_default_associate_visit_with_latest_computed_task_periods(self):
+
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            event_type="Tab activated",
+            tab_id='1',
+            url="http://url1.com"
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 6, 0),
+            event_type="Tab activated",
+            tab_id='2',
+            url="http://url2.com"
+        )
+
+        # All three of these tasks have the same (matching) periods.
+        # But the second one was the latest one to be computed (compute_index=2)
+        create_task_period(
+            compute_index=0,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=1,
+        )
+        create_task_period(
+            compute_index=2,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=2,
+        )
+        create_task_period(
+            compute_index=1,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=3,
+        )
+
+        compute_location_visits()
+        visit = LocationVisit.select()[0]
+        self.assertEqual(visit.task_index, 2)
+
+    def test_if_task_compute_index_specified_only_match_tasks_with_that_index(self):
+
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            event_type="Tab activated",
+            tab_id='1',
+            url="http://url1.com"
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 6, 0),
+            event_type="Tab activated",
+            tab_id='2',
+            url="http://url2.com"
+        )
+        create_task_period(
+            compute_index=0,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=1,
+        )
+        create_task_period(
+            compute_index=2,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=2,
+        )
+        create_task_period(
+            compute_index=1,
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            task_index=3,
+        )
+
+        # By specifying the task compute index here, we should restrict the
+        # location to match only the task with this compute index.
+        compute_location_visits(task_compute_index=0)
+        visit = LocationVisit.select()[0]
+        self.assertEqual(visit.task_index, 1)
+
     def test_make_no_location_visit_if_it_doesnt_start_after_or_end_before_end_of_task(self):
 
         create_location_event(

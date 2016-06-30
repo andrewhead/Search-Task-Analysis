@@ -30,12 +30,18 @@ NEW_PAGE_EVENTS = [
 ]
 
 
-def create_location_visit(compute_index, user_id, activating_event, deactivating_event):
+def create_location_visit(
+        compute_index, task_compute_index, user_id,
+        activating_event, deactivating_event):
     '''
     Create a record of the start and end of a visit to a URL within a tab.
     Note that while an `activating_event` will necessarily be associated with the URL
     and page title for the visited page, the deactivating event may be associated
     with a different URL and page.
+
+    The `task_compute_index` lets us associate this visit only with a certain round
+    of the tasks that have been computed (instead of scanning over all matching
+    tasks, which may have been computed multiple times).
     '''
 
     # When a visit to a URL is complete, find out if there's an associated task and,
@@ -43,6 +49,7 @@ def create_location_visit(compute_index, user_id, activating_event, deactivating
     task_periods = (
         TaskPeriod.select()
         .where(
+            TaskPeriod.compute_index == task_compute_index,
             TaskPeriod.user_id == user_id,
             TaskPeriod.start < activating_event.visit_date,
             TaskPeriod.end > deactivating_event.visit_date,
@@ -66,11 +73,16 @@ def create_location_visit(compute_index, user_id, activating_event, deactivating
         )
 
 
-def compute_location_visits():
+def compute_location_visits(task_compute_index=None):
 
     # Create a new index for this computation
     last_compute_index = LocationVisit.select(fn.Max(LocationVisit.compute_index)).scalar() or 0
     compute_index = last_compute_index + 1
+
+    # Determine what will be the compute index of the task periods that these visits are matched to.
+    # This will become the latest compute index if it hasn't been specified.
+    if task_compute_index is None:
+        task_compute_index = TaskPeriod.select(fn.Max(TaskPeriod.compute_index)).scalar()
 
     # Compute the ID of the last user to complete the study
     max_user_id = LocationEvent.select(fn.Max(LocationEvent.user_id)).scalar()
@@ -99,6 +111,7 @@ def compute_location_visits():
                     if event.url != active_tab_latest_url_event.url:
                         create_location_visit(
                             compute_index=compute_index,
+                            task_compute_index=task_compute_index,
                             user_id=user_id,
                             activating_event=active_tab_latest_url_event,
                             deactivating_event=event,
@@ -110,6 +123,7 @@ def compute_location_visits():
                 if active_tab_id is not None:
                     create_location_visit(
                         compute_index=compute_index,
+                        task_compute_index=task_compute_index,
                         user_id=user_id,
                         activating_event=active_tab_latest_url_event,
                         deactivating_event=event,
@@ -124,6 +138,7 @@ def compute_location_visits():
                 if active_tab_id is not None:
                     create_location_visit(
                         compute_index=compute_index,
+                        task_compute_index=task_compute_index,
                         user_id=user_id,
                         activating_event=active_tab_latest_url_event,
                         deactivating_event=event,
@@ -134,9 +149,14 @@ def compute_location_visits():
                 active_tab_latest_url_event = event
 
 
-def main(*args, **kwargs):
-    compute_location_visits()
+def main(task_compute_index, *args, **kwargs):
+    compute_location_visits(task_compute_index)
 
 
 def configure_parser(parser):
     parser.description = "Compute the time bounds of all visits to URLs on the web."
+    parser.add_argument(
+        '--task-compute-index',
+        type=int,
+        help="Which version of task periods to match visits to (default: latest)."
+    )

@@ -123,8 +123,8 @@ class TaskPeriod(ProxyModel):
     user_id = IntegerField(index=True)
     task_index = IntegerField(index=True)
     concern_index = IntegerField(index=True)
-    start = DateTimeField()
-    end = DateTimeField()
+    start = DateTimeField(index=True)
+    end = DateTimeField(index=True)
 
 
 class LocationVisit(ProxyModel):

@@ -21,7 +21,7 @@ data_logger.propagate = False
 
 from models import create_tables, init_database
 from compute import task_periods, location_visits, location_ratings
-# from migrate import
+from migrate import run_migration
 from dump import location_visits as dump_location_visits,\
     location_ratings as dump_location_ratings, confidence_ratings, package_comparisons,\
     package_documentation_quality, package_community_quality, package_preference,\
@@ -39,7 +39,7 @@ COMMANDS = {
             "Manage database migrations. (Should only be necessary if you initialized " +
             "your database and then the model files were updated.)",
         'module_help': "Migration operation.",
-        'modules': [],
+        'modules': [run_migration],
     },
     'dump': {
         'description': "Dump data to a text file.",

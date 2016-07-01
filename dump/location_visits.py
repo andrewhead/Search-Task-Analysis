@@ -15,7 +15,8 @@ logger = logging.getLogger('data')
 
 @dump_csv(__name__, [
     "Compute Index", "User", "Task Index", "Concern Index", "Tab ID",
-    "URL", "Domain", "Page Title", "Start Time", "End Time"])
+    "URL", "Domain", "Page Title", "Start Time", "End Time"],
+    delimiter='|')
 def main(*args, **kwargs):
 
     # Only dump the most recently computed location visits (ignore all others).

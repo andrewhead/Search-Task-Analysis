@@ -6,7 +6,7 @@ import logging
 from peewee import fn
 
 from dump import dump_csv
-from _urls import get_domain_name
+from _urls import get_label, get_domain_name
 from models import LocationVisit
 
 
@@ -15,7 +15,7 @@ logger = logging.getLogger('data')
 
 @dump_csv(__name__, [
     "Compute Index", "User", "Task Index", "Concern Index", "Tab ID",
-    "URL", "Domain", "Page Title", "Start Time", "End Time"],
+    "URL", "Domain", "Page Type", "Page Title", "Start Time", "End Time"],
     delimiter='|')
 def main(*args, **kwargs):
 
@@ -38,6 +38,7 @@ def main(*args, **kwargs):
             visit.tab_id,
             visit.url,
             get_domain_name(visit.url),
+            get_label(visit.url),
             visit.title,
             visit.start,
             visit.end,

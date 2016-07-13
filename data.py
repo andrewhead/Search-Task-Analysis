@@ -15,7 +15,7 @@ log_formatter = logging.Formatter(
 log_handler = logging.StreamHandler()
 log_handler.setFormatter(log_formatter)
 data_logger = logging.getLogger('data')
-data_logger.setLevel(logging.INFO)
+data_logger.setLevel(logging.DEBUG)
 data_logger.addHandler(log_handler)
 data_logger.propagate = False
 

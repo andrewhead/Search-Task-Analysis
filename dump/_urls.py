@@ -49,208 +49,395 @@ LABELS = [{
         ],
     }]
 }, {
-    # Official documentation for various projects
-    # Right now, if something is on the right site, we group it into the official documentation.
-    # In the future, we should separate out the following
-    # * FAQs
-    # * tutorials
-    # * reference
-    # * search
-    # * contribution guides
-    # * news / release notes
-    # * comparison pages
-    # * download pages
-    # * contact info
-    # * resource / tutorial list
-    # * pages mostly for navigation (more links than content)
-    'name': "Docs",
+    # Doc home pages / full table of contents
+    # Note that these may have little snippets of step-by-step tutorials
+    # and conceptual guides on them.  We can classify these later.
+    'name': "Documentation home",
+    'project': True,
+    'patterns': [{
+        'domain': "keras.io",
+        'path': r"^$",
+    }, {
+        'domain': "lasagne.readthedocs.io",
+        'path': [
+            r"^en/latest/$",
+            r"^en/latest/index\.html$",
+        ]
+    }, {
+        'domain': "nose.readthedocs.io",
+        'path': [
+            r"^en/latest/$",
+            r"^en/latest/index\.html$",
+        ]
+    }, {
+        'domain': "nose2.readthedocs.io",
+        'path': [
+            r"^en/latest/$",
+            r"^en/latest/index\.html$",
+        ]
+    }, {
+        'domain': "panda3d.org",
+        'path': [
+            r"^$",
+            r"^documentation\.php$",
+            r"^manual/index\.php/Main_Page$",
+        ]
+    }, {
+        'domain': "pygame.org",
+        'path': [
+            r"^docs/$",
+            r"^docs/index\.html$",
+            r"^hifi\.html$",
+            r"^readme\.html$",
+        ]
+    }, {
+        'domain': "pytest.org",
+        'path': [
+            r"^latest/$",
+            r"^latest/index\.html$",
+            r"^latest/contents\.html$",
+            r"^latest/overview\.html$",
+        ]
+    }]
+}, {
+    'name': "Documentation home",
+    'project': False,
+    'patterns': [{
+        'domain': "deeplearning.net",
+        'path': r"^software/theano/$",
+    }, {
+        'domain': "django-nose.readthedocs.io",
+        'path': r"^en/latest/$",
+    }, {
+        'domain': "pytest-django.readthedocs.io",
+        'path': "^en/latest/$",
+    }, {
+        'domain': "python.org",
+        'path': [
+            "^$",
+            "^doc/$",
+        ]
+    }]
+}, {
+    # Tutorials: step-by-step guides aiming to help you get started with some functionality
+    # Usually they have you finish a project that covers a portion of the functionality
+    # by the time you're finished following it.
+    'name': "Tutorial",
     'project': True,
     'patterns': [{
         'domain': "keras.io",
         'path': [
-            r"^$",  # Home page
-            r"^layers/",
-            r"^models/",
-            r"^activations/",
-            r"^constraints/",
-            r"^initializations/",
-            r"^objectives/",
-            r"^preprocessing/image/",
-            r"^search\.html",  # search
-            r"^visualization/",
-            r"^getting-started/",  # note that this includes FAQ and reference
-            r"^faq/",
+            r"^getting-started/functional-api-guide/$",
+            r"^getting-started/sequential-model-guide/$",
         ]
     }, {
         'domain': "lasagne.readthedocs.io",
-        'path': r"^en/latest/",
-    }, {
-        'domain': "nose.readthedocs.io",
         'path': [
-            r"^en/latest/$",  # home page
-            r"^en/latest/index\.html$",  # home page
-            r"^en/latest/finding_tests\.html$",
-            r"^en/latest/testing\.html$",
-            r"^en/latest/usage\.html$",
-            r"^en/latest/writing_tests\.html$",
-            r"^en/latest/plugins/multiprocess\.html$",
-            r"^en/latest/plugins/xunit\.html$",
-            r"^en/latest/contributing\.html$",
-            r"^en/latest/developing\.html$",
-            r"^en/latest/news\.html$",
-            r"^en/latest/search\.html$",  # search
-            r"^en/latest/setuptools_integration\.html$",
-        ],
+            r"^en/latest/user/installation\.html$",
+            r"^en/latest/user/tutorial\.html$",
+        ]
     }, {
         'domain': "nose2.readthedocs.io",
         'path': [
-            r"^en/latest/$",  # home page
-            r"^en/latest/index\.html$",  # home page
             r"^en/latest/getting_started\.html$",
-            r"^en/latest/configuration\.html$",
-            r"^en/latest/plugins\.html$",
-            r"^en/latest/usage\.html$",
-            r"^en/stable/decorators\.html$",
-            r"^en/stable/dev/event_reference\.html$",
             r"^en/stable/getting_started\.html$",
-            r"^en/stable/tools\.html$",
-            r"^en/stable/usage\.html$",
-            r"^en/latest/plugins/junitxml\.html$",
-            r"^en/latest/plugins/configuration\.html$",
-            r"^en/latest/dev/contributing\.html$",
-            r"^en/latest/dev/documenting_plugins\.html$",
-            r"^en/latest/differences\.html$",
-        ],
-    }, {
-        # In this one really weird case, a past version of the official docs
-        # was saved as a PDF and hosted somewhere else.
-        'domain': "research.cs.wisc.edu",
-        'path': r"^graphics/Courses/559-f2007/wiki/pub/tutorials/tutPanda/pandaManual.pdf$",
+        ]
     }, {
         'domain': "panda3d.org",
         'path': [
-            "^$",  # home page
-            "^documentation\.php$",
-            "^manual/index\.php/Cheat_Sheets$",
-            "^manual/index\.php/Choosing_a_Texture_Size$",
-            "^manual/index\.php/Introduction_to_Panda3D$",
-            "^manual/index\.php/Main_Page$",
-            "^manual/index\.php/Starting_Panda3D$",
-            "^manual/index\.php/A_Panda3D_Hello_World_Tutorial$",
-            "^manual/index\.php/Actor_Animations$",
-            "^manual/index\.php/Attaching_an_Object_to_a_Joint$",
-            "^manual/index\.php/Loading_Actors_and_Animations$",
-            "^manual/index\.php/Loading_Models$",
-            "^manual/index\.php/Loading_the_Grassy_Scenery$",
-            "^manual/index\.php/Models_and_Actors$",
-            "^manual/index\.php/Multi-Part_Actors$",
-            "^manual/index\.php/OnscreenText$",
-            "^manual/index\.php/Physics$",
-            "^manual/index\.php/Text_Fonts$",
-            "^manual/index\.php/Text_Node$",
-            "^manual/index\.php/Text_and_Image_Rendering$",
-            "^manual/index\.php/Text_Fonts$",
-            "^manual/index\.php/Introductory_Tutorials$",
-            "^reference/(\d+\.\d+\.\d+/|devel)",
-            "^community\.php$",
-            "^download\.php$",  # includes download pages for platform and SDK
-            "^download/panda3d-\d+\.\d+\.\d+/notes-\d+\.\d+\.\d+\.txt$",
-            "^manual/index\.php/The_IRC_Channel$",
-            "^legal.php$",
-            "^manual/index\.php/User_Contributed_Tutorials_and_Examples$",  # resource listing
-            "^manual/index\.php/Video_Tutorials$",  # resource listing
-            "^reference/python$",
-        ],
+            r"^manual/index\.php/A_Panda3D_Hello_World_Tutorial$",
+            r"^manual/index\.php/Starting_Panda3D$",
+            r"^manual/index\.php/Loading_the_Grassy_Scenery$",
+        ]
     }, {
         'domain': "pygame.org",
         'path': [
-            r"^hifi\.html$",  # home page
-            r"^docs/",
-            r"^readme\.html$",
-            r"^wiki/",
-            r"^download\.shtml$",
-            r"^news\.html$",
-        ],
+            r"^docs/tut/ImportInit\.html$",
+            r"^docs/tut/MoveIt\.html$",
+            r"^docs/tut/chimp/ChimpLineByLine\.html$",
+            r"^docs/tut/tom/MakeGames\.html$",
+            r"^docs/tut/tom/games\d+\.html$",
+            r"^wiki/GettingStarted$",  # installation guide
+        ]
     }, {
         'domain': "pytest.org",
         'path': [
-            r"^latest/$",  # home page
-            r"^latest/index\.html$",  # home page
-            r"^latest/contents\.html$",
-            r"^latest/overview\.html$",
-            r"^latest/assert\.html$",
-            r"^latest/example/$",
-            r"^latest/example/nonpython\.html$",
-            r"^latest/example/reportingdemo\.html$",
-            r"^latest/fixture\.html$",
             r"^latest/getting-started\.html$",
             r"^latest/goodpractices\.html$",
+            r"^latest/usage\.html$",
+        ]
+    }]
+}, {
+    # Conceptual guides: overviews to areas of the software
+    # There's a fine line between this and tutorials sometimes.
+    # We consider tutorials to be a first-stop guide to getting started
+    # with the software.  Conceptual guides are for greater depth
+    # about specific areas of the software.
+    # Sometimes our distinction from reference is based on whether the author
+    # of the docs placed this in the "API" part of the documentation.
+    # This also includes collections of general advice, like for Pygame.
+    'name': "Conceptual guide",
+    'project': True,
+    'patterns': [{
+        'domain': "keras.io",
+        'path': [
+            r"^activations/$",
+            r"^constraints/$",
+            r"^initializations/$",
+            r"^layers/about-keras-layers/$",
+            r"^layers/writing-your-own-keras-layers/$",
+            r"^models/about-keras-models/$",
+            r"^objectives/$",
+            r"^visualization/$",
+        ]
+    }, {
+        'domain': "lasagne.readthedocs.io",
+        'path': [
+            r"^en/latest/user/custom_layers\.html$",
+            r"^en/latest/user/layers\.html$",
+        ]
+    }, {
+        'domain': "nose.readthedocs.io",
+        'path': [
+            r"^en/latest/finding_tests\.html$",
+            r"^en/latest/plugins/multiprocess\.html$",  # could also be reference
+            r"^en/latest/plugins/xunit\.html$",  # could also be reference
+            r"^en/latest/setuptools_integration\.html$",
+            r"^en/latest/testing\.html$",
+            r"^en/latest/usage\.html$",  # could also be reference
+            r"^en/latest/writing_tests\.html$",
+        ]
+    }, {
+        'domain': "nose2.readthedocs.io",
+        'path': [
+            r"^en/latest/configuration\.html$",  # some reference-like parts
+            r"^en/latest/plugins\.html$",
+            r"^en/latest/plugins/junitxml\.html$",  # could be reference
+            r"^en/latest/usage\.html$",
+            r"^en/stable/decorators\.html$",  # could be reference
+            r"^en/stable/tools\.html$",  # really just a page for navigation
+            r"^en/stable/usage\.html$",  # really just a page for navigation
+        ]
+    }, {
+        'domain': "panda3d.org",
+        'path': [
+            r"^manual/index\.php/Cheat_Sheets$",
+            r"^manual/index\.php/Actor_Animations$",
+            r"^manual/index\.php/Attaching_an_Object_to_a_Joint$",
+            r"^manual/index\.php/Choosing_a_Texture_Size$",
+            r"^manual/index\.php/Introduction_to_Panda3D$",
+            r"^manual/index\.php/Loading_Actors_and_Animations$",
+            r"^manual/index\.php/Loading_Models$",
+            r"^manual/index\.php/Models_and_Actors$",
+            r"^manual/index\.php/Multi-Part_Actors$",
+            r"^manual/index\.php/Physics$",
+            r"^manual/index\.php/Text_and_Image_Rendering$",
+            r"^manual/index\.php/Text_Fonts$",
+            r"^manual/index\.php/Text_Node$",
+            r"^manual/index\.php/OnscreenText$",  # looks like reference too
+        ]
+    }, {
+        'domain': "pygame.org",
+        'path': [
+            r"^docs/tut/intro/intro\.html$",  # kind of a paradigm introduction?
+            r"^docs/tut/newbieguide\.html$",  # mostly prose, collection of advice
+            r"^wiki/Profiling$",
+            r"^wiki/about$",  # mostly prose, collection of advice
+        ]
+    }, {
+        'domain': "pytest.org",
+        'path': [
+            r"^\d+\.\d+\.\d+(\.dev\d+)?/skipping\.html$",
+            r"^latest/assert\.html$",
+            r"^latest/fixture\.html$",
             r"^latest/mark\.html$",
             r"^latest/nose\.html$",
             r"^latest/recwarn\.html$",
             r"^latest/skipping\.html$",
             r"^latest/unittest\.html$",
-            r"^latest/usage\.html$",
             r"^latest/writing_plugins\.html$",
             r"^latest/xdist\.html$",
-            r"^\d+\.\d+\.\d+(\.dev\d+)?/skipping\.html$",
-            r"^latest/pytest\.pdf$",
-            r"^latest/announce/index\.html$",
-            r"^latest/announce/sprint2016\.html$",
-            r"^latest/announce/release-\d+\.\d+\.\d+\.html$",
-            r"^latest/changelog\.html$",
-            r"^latest/contact\.html$",
-            r"^latest/faq\.html$",
-            r"^latest/search\.html$",  # search
-            r"^latest/talks\.html$",
-        ],
+        ]
     }]
 }, {
-    # Docs for other packages / languages
-    # See notes above for official docs about how we currently lump together
-    # documentation that serves many different purposes.
-    'name': "Docs",
+    'name': "Conceptual guide",
     'project': False,
     'patterns': [{
         'domain': "django-nose.readthedocs.io",
-        'path': r"^en/latest/",
+        'path': r"^en/latest/usage.html$",
     }, {
         'domain': "pytest-django.readthedocs.io",
         'path': [
-            r"^en/latest/$",  # home page
-            r"^en/latest/tutorial.html$",  # home page
-            r"^en/latest/usage.html$",  # home page
             r"^en/latest/_sources/usage.txt$",
-        ],
-    }, {
-        'domain': "deeplearning.net",
-        'path': r"^software/theano/$",
-    }, {
-        'domain': "docs.python.org",
-        'path': [
-            r"^dev/library",
-            r"^3/faq/$",
-            r"^3/faq/library\.html$",
-            r"^3/library/unittest\.html$",
+            r"^en/latest/usage\.html$",
         ]
-    }, {
-        'domain': "media.readthedocs.org",
-        'path': r"^pdf/blenderpanda/latest/blenderpanda\.pdf$",
-    }, {
-        'domain': "python.org",
-        'path': r"^doc/$"
     }, {
         'domain': "wiki.python.org",
+        'path': "^moin/GameProgramming$",
+    }]
+}, {
+    # Reference: standardized API documentation.
+    # There might be a fine line between this and conceptual guides.
+    # In general, conceptual guides will use more prose, and reference will
+    # be more tabular, explicitly describing signatures and arguments.
+    # Reference is expected to be complete, and conceptual guides an introduction.
+    # We consider something that looks like mostly reference material with
+    # a short conceptual introduction at the top to be reference.
+    'name': "Reference",
+    'project': True,
+    'patterns': [{
+        'domain': "keras.io",
         'path': [
-            r"^moin/PyTest$",
-            r"^moin/GameProgramming$",
+            r"^layers/convolutional/$",
+            r"^layers/core/$",
+            r"^models/model/$",
+            r"^models/sequential/$",
+            r"^preprocessing/image/$",
         ]
     }, {
-        'domain': "python.org",
+        'domain': "lasagne.readthedocs.io",
         'path': [
-            r"^$",
-            r"^community/$",
+            r"^en/latest/modules/init\.html$",
+            r"^en/latest/modules/layers\.html$",
+            r"^en/latest/modules/layers/helper\.html$",
+            r"^en/latest/modules/objectives\.html$",  # could be conceputal guide
         ]
+    }, {
+        'domain': "nose2.readthedocs.io",
+        'path': [
+            r"^en/stable/dev/event_reference\.html$",
+        ]
+    }, {
+        'domain': "panda3d.org",
+        'path': [
+            "^reference/python$",  # also tells about releases
+            "^reference/(\d+\.\d+\.\d+/|devel)",
+        ]
+    }, {
+        'domain': "pygame.org",
+        'path': [
+            r"^docs/genindex\.html$",
+            r"^docs/ref/draw\.html$",
+            r"^docs/ref/event\.html$",
+            r"^docs/ref/gfxdraw\.html$",
+            r"^docs/ref/image\.html$",
+            r"^docs/ref/mouse\.html$",
+            r"^docs/ref/movie\.html$",
+            r"^docs/ref/pygame\.html$",
+            r"^docs/ref/rect\.html$",
+            r"^docs/ref/transform\.html$",
+        ]
+    }]
+}, {
+    'name': "Reference",
+    'project': False,
+    'patterns': [{
+        'domain': "docs.python.org",
+        'path': [
+            # These two could also be considered conceptual guides
+            r"^3/library/unittest\.html$",
+            r"^dev/library/unittest\.html$",
+        ]
+    }]
+}, {
+    # Manual: Printed PDF of mixed documentation
+    'name': "Manual",
+    'project': True,
+    'patterns': [{
+        'domain': "pytest.org",
+        'path': r"^latest/pytest\.pdf$",
+    }, {
+        'domain': "research.cs.wisc.edu",
+        'path': r"^graphics/Courses/559-f2007/wiki/pub/tutorials/tutPanda/pandaManual\.pdf"
+    }]
+}, {
+    'name': "Manual",
+    'project': False,
+    'patterns': [{
+        'domain': "media.readthedocs.org",
+        'path': "^pdf/blenderpanda/latest/blenderpanda\.pdf$",
+    }]
+}, {
+    # FAQ: lists of frequently asked questions
+    'name': "FAQ",
+    'project': True,
+    'patterns': [{
+        'domain': "keras.io",
+        'path': [
+            r"^faq/$",
+            r"^getting-started/faq/$",
+        ]
+    }, {
+        'domain': "pygame.org",
+        'path': "^wiki/FrequentlyAskedQuestions$",
+    }, {
+        'domain': "pytest.org",
+        'path': "^latest/faq\.html$",
+    }]
+}, {
+    'name': "FAQ",
+    'project': False,
+    'patterns': [{
+        'domain': "docs.python.org",
+        'path': [
+            r"^3/faq/$",
+            r"^3/faq/library\.html$",
+        ]
+    }]
+}, {
+    # Contribution guide
+    'name': "Contributing",
+    'project': True,
+    'patterns': [{
+        'domain': "lasagne.readthedocs.io",
+        'path': r"^en/latest/user/development\.html$",
+    }, {
+        'domain': "nose.readthedocs.io",
+        'path': [
+            r"^en/latest/contributing\.html$",
+            r"^en/latest/developing\.html$",
+        ]
+    }, {
+        'domain': "nose2.readthedocs.io",
+        'path': [
+            r"^en/latest/dev/contributing\.html$",
+            r"^en/latest/dev/documenting_plugins\.html$",  # for developing plugins
+        ]
+    }]
+}, {
+    # Pages for where to get help / contact developers
+    'name': "Getting help",
+    'project': True,
+    'patterns': [{
+        'domain': "pygame.org",
+        'path': [
+            r"^wiki/info$",
+            r"^wiki/patchesandbugs$",
+        ]
+    }, {
+        'domain': "pytest.org",
+        'path': r"^latest/contact\.html$",
+    }, {
+        'domain': "panda3d.org",
+        'path': [
+            r"^community\.php$",
+            r"^manual/index\.php/The_IRC_Channel$",
+        ]
+    }]
+}, {
+    'name': "Getting help",
+    'project': False,
+    'patterns': [{
+        'domain': "python.org",
+        'path': r"^community/$",
+    }]
+}, {
+    # Pages of links to assorted (non-homogeneous) external pages
+    'name': "Links",
+    'project': True,
+    'patterns': [{
+        'domain': "pytest.org",
+        'path': r"^latest/talks\.html$",
     }]
 }, {
     # Forums
@@ -392,44 +579,31 @@ LABELS = [{
     }, {
         'domain': "duckduckgo.com",
         'path': r"^$",
-    }]
-}, {
-    'name': "Search home",
-    'project': False,
-    'patterns': [{
+    }, {
         'domain': "search.gmane.org",
         'path': r"^$",
     }]
 }, {
-    'name': "Search results",
-    'project': False,
-    'patterns': [{
-        'domain': "google.com",
-        'path': r"^search$",
-    }, {
-        'domain': "google.com",
-        'path': r"^$",
-        'fragment': r"^q=",  # query can be given as fragment
-    }, {
-        'domain': "encrypted.google.com",
-        'path': r"^search$",
-    }, {
-        'domain': "google.co.uk",  # Google UK
-        'path': r"^search$",
-    }, {
-        'domain': "search.yahoo.com",
-        'path': r"^yhs/search$",
-    }, {
-        'domain': "duckduckgo.com",
-        'path': r".*",
-        'query': "^q=",
-    }]
-}, {
-    # Search on various sites (official and unofficial)
+    # Search
     'name': "Search",
     'project': True,
     'patterns': [{
-        'target': "site",
+        'target': "project home",
+        'domain': "keras.io",
+        'path': r"^search.html$",
+        'query': r"^q=",
+    }, {
+        'target': "project home",
+        'domain': "lasagne.readthedocs.io",
+        'path': r"^en/latest/search\.html$",
+        'query': r"q=",
+    }, {
+        'target': "project home",
+        'domain': "nose.readthedocs.io",
+        'path': r"^en/latest/search\.html$",
+        'query': r"q=",
+    }, {
+        'target': "project home",
         'domain': "pygame.org",
         'path': [
             # I think participants only arrived at this search by mistake
@@ -437,6 +611,11 @@ LABELS = [{
             "^tags/forum$",
             "^tags/example$",
         ]
+    }, {
+        'target': "project home",
+        'domain': "pytest.org",
+        'path': r"^latest/search\.html$",
+        'query': r"q=",
     }, {
         # TODO: need to make sure URLs are official
         'target': 'forum',
@@ -491,6 +670,26 @@ LABELS = [{
         'domain': "youtube.com",
         'path': "results$",
         'query': "search_query=",
+    }, {
+        'domain': "google.com",
+        'path': r"^search$",
+    }, {
+        'domain': "google.com",
+        'path': r"^$",
+        'fragment': r"^q=",  # query can be given as fragment
+    }, {
+        'domain': "encrypted.google.com",
+        'path': r"^search$",
+    }, {
+        'domain': "google.co.uk",  # Google UK
+        'path': r"^search$",
+    }, {
+        'domain': "search.yahoo.com",
+        'path': r"^yhs/search$",
+    }, {
+        'domain': "duckduckgo.com",
+        'path': r".*",
+        'query': "^q=",
     }]
 }, {
     # Code hosting sites: Lot's of types of pages!
@@ -579,11 +778,42 @@ LABELS = [{
         'path': r"^[^/]+/[^/]+/commits/[a-f0-9]{40}$",
     }]
 }, {
-    'name': "Release history",
+    'name': "Downloads / Releases",
     'project': True,
     'patterns': [{
+        'domain': "nose.readthedocs.io",
+        'path': r"^en/latest/news\.html$",
+    }, {
+        'domain': "pygame.org",
+        'path': r"^download\.shtml$",
+    }, {
         'domain': "github.com",
         'path': r"releases$",
+    }, {
+        'domain': "panda3d.org",
+        'path': [
+            r"^download\.php$",
+            r"^download/panda3d-\d+\.\d+\.\d+/notes-\d+\.\d+\.\d+\.txt",
+        ]
+    }, {
+        'domain': "pytest.org",
+        'path': [
+            r"^latest/announce/index\.html$",
+            r"^latest/announce/release-\d+\.\d+\.\d+\.html$",
+            r"^latest/changelog\.html$",
+        ]
+    }]
+}, {
+    'name': "News",
+    'project': True,
+    'patterns': [{
+        'domain': "pygame.org",
+        'path': r"^news.html$",
+    }, {
+        'domain': "pytest.org",
+        'path': [
+            r"^latest/announce/sprint2016\.html$",
+        ]
     }]
 }, {
     'name': "Milestone",
@@ -714,10 +944,29 @@ LABELS = [{
     }, {
         'domain': "guides.github.com",
         'path': r"^introduction/flow/$",
+    }, {
+        'domain': "pytest-django.readthedocs.io",
+        'path': r"^en/latest/tutorial\.html$",
+    }, {
+        'domain': "wiki.python.org",
+        'path': r"^moin/PyTest$",
     }]
 }, {
     # These are sites that link to pages of tutorial, but don't show
     # any one tutorial immediately on that page.
+    'name': "Tutorial portal",
+    'project': True,
+    'patterns': [{
+        'domain': "pygame.org",
+        'path': r"^wiki/tutorials$",
+    }, {
+        'domain': "panda3d.org",
+        'path': [
+            r"^manual/index\.php/Introductory_Tutorials$",
+            r"^manual/index\.php/Video_Tutorials$",
+        ]
+    }]
+}, {
     'name': "Tutorial portal",
     'project': False,
     'patterns': [{
@@ -938,6 +1187,12 @@ LABELS = [{
             "^gallery/demo\.php$",
             "^manual/index\.php/Sample_Programs:_\w+$",
         ]
+    }, {
+        'domain': "pytest.org",
+        'path': [
+            r"^latest/example/nonpython\.html$",
+            r"^latest/example/reportingdemo\.html$",
+        ]
     }],
 }, {
     'name': "Example project overview",
@@ -945,10 +1200,16 @@ LABELS = [{
     'patterns': [{
         'domain': "panda3d.org",
         'path': [
-            "^manual/index\.php/Sample_Programs_in_the_Distribution$",
-            "^gallery.php$",
-            "^gallery/$",
+            # The following could be a tutorial protal, but it actually has a lot
+            # more examples than it has tutorials (there's just one).
+            r"^manual/index\.php/User_Contributed_Tutorials_and_Examples$",
+            r"^manual/index\.php/Sample_Programs_in_the_Distribution$",
+            r"^gallery.php$",
+            r"^gallery/$",
         ]
+    }, {
+        'domain': "pytest.org",
+        'path': "^latest/example/$",
     }]
 }, {
     'name': "Example project overview",
@@ -1048,7 +1309,14 @@ LABELS = [{
         ]
     }]
 }, {
-    # Comparison sites
+    # Comparison pages for explicitly comparing one or more packages
+    'name': "Package comparison",
+    'project': True,
+    'patterns': [{
+        'domain': "nose2.readthedocs.io",
+        'path': r"^en/latest/differences\.html$",
+    }]
+}, {
     'name': "Package comparison",
     'project': False,
     'patterns': [{
@@ -1105,6 +1373,13 @@ LABELS = [{
     }]
 }, {
     # Miscellaneous: things that aren't worth classifying yet
+    'name': "Miscellaneous",
+    'project': True,
+    'patterns': [{
+        'domain': "panda3d.org",
+        'path': "^legal\.php$",
+    }]
+}, {
     'name': "Miscellaneous",
     'project': False,
     'patterns': [{

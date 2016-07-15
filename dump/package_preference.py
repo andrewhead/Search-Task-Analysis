@@ -11,6 +11,12 @@ from models import PackageComparison, PackagePair
 logger = logging.getLogger('data')
 
 
+def _standardize_package_name(package_name):
+    stripped = package_name.strip()
+    lower_case = stripped.lower()
+    return lower_case
+
+
 @dump_csv(__name__, ["User", "Stage", "Comparison Rating", "Package 1", "Package 2"])
 def main(*args, **kwargs):
 
@@ -33,8 +39,8 @@ def main(*args, **kwargs):
             comparison.user_id,
             comparison.stage,
             comparison.likert_preference,
-            comparison.package1,
-            comparison.package2,
+            _standardize_package_name(comparison.package1),
+            _standardize_package_name(comparison.package2),
         ]]
 
     raise StopIteration

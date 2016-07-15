@@ -14,8 +14,9 @@ logger = logging.getLogger('data')
 
 
 @dump_csv(__name__, [
-    "Compute Index", "User", "Task Index", "Concern Index", "Tab ID", "URL", "Domain", "Page Type",
-    "Search Target", "Created by Project Developers", "Page Title", "Start Time", "End Time"],
+    "Compute Index", "User", "Task Index", "Concern Index", "Tab ID", "URL",
+    "Domain", "Page Type", "Search Target", "Created by Project Developers",
+    "Page Title", "Start Time", "End Time", "Time passed (s)"],
     delimiter='|')
 def main(*args, **kwargs):
 
@@ -43,6 +44,9 @@ def main(*args, **kwargs):
         if label is None:
             urls_without_labels.add(visit.url)
 
+        time_passed = visit.end - visit.start
+        seconds = time_passed.seconds + (time_passed.microseconds / float(1000000))
+
         yield [[
             visit.compute_index,
             visit.user_id,
@@ -57,6 +61,7 @@ def main(*args, **kwargs):
             visit.title,
             visit.start,
             visit.end,
+            seconds,
         ]]
 
     # Print out a list of URLs for which labels were not found

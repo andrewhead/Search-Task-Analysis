@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import logging
 
+from compute.task_periods import _get_concern_index
 from dump import dump_csv
 from models import Question, PackagePair
 
@@ -11,8 +12,14 @@ from models import Question, PackagePair
 logger = logging.getLogger('data')
 
 
+def _standardize_package_name(package_name):
+    stripped = package_name.strip()
+    lower_case = stripped.lower()
+    return lower_case
+
+
 @dump_csv(__name__, [
-    "User", "Question Index", "Concern",
+    "User", "Question Index", "Concern Index",
     "Comparison Rating", "Package 1", "Package 2"
 ])
 def main(*args, **kwargs):
@@ -29,7 +36,6 @@ def main(*args, **kwargs):
         .select(
             Question.user_id,
             Question.question_index,
-            Question.concern,
             Question.likert_comparison_evidence,
             PackagePair.package1,
             PackagePair.package2,
@@ -39,13 +45,14 @@ def main(*args, **kwargs):
     )
 
     for question in questions:
+        concern_index = _get_concern_index(question.user_id, question.question_index)
         yield [[
             question.user_id,
             question.question_index,
-            question.concern,
+            concern_index,
             question.likert_comparison_evidence,
-            question.package1,
-            question.package2,
+            _standardize_package_name(question.package1),
+            _standardize_package_name(question.package2),
         ]]
 
     raise StopIteration

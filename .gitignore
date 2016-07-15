@@ -101,3 +101,6 @@ ENV/
 
 # Data files produced from analysis
 data
+
+# OS X files
+.DS_Store

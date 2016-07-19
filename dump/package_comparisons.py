@@ -6,6 +6,7 @@ import logging
 
 from compute.task_periods import _get_concern_index
 from dump import dump_csv
+from _clean_data import normalize_user_id
 from models import Question, PackagePair
 
 
@@ -47,7 +48,7 @@ def main(*args, **kwargs):
     for question in questions:
         concern_index = _get_concern_index(question.user_id, question.question_index)
         yield [[
-            question.user_id,
+            normalize_user_id(question.user_id),
             question.question_index,
             concern_index,
             question.likert_comparison_evidence,

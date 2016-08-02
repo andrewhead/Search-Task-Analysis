@@ -85,6 +85,25 @@ class ProxyModel(Model):
         database = db_proxy
 
 
+class Prequestionnaire(ProxyModel):
+    ''' A questionnaire with information about a participant's background. '''
+
+    user_id = IntegerField()
+    programming_years = TextField()
+    python_years = TextField()
+    professional_years = TextField()
+    coding_reason = TextField()
+    # The column in the database has a typo, which we correct in this model
+    programming_proficiency = TextField(db_column='programming_profiency')
+    python_proficiency = TextField()
+    occupation = TextField()
+    occupation_other = TextField()
+    gender = TextField()
+
+    class Meta:
+        db_table = 'form_prequestionnaire'
+
+
 class LocationEvent(ProxyModel):
     ''' A browser event describing when a user visits a new location. '''
 

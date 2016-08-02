@@ -25,7 +25,8 @@ from migrate import run_migration
 from dump import location_visits as dump_location_visits,\
     location_ratings as dump_location_ratings, confidence_ratings, package_comparisons,\
     package_documentation_quality, package_community_quality, package_preference,\
-    concern_ranks, open_responses, na_responses, perception_changes, location_events
+    concern_ranks, open_responses, na_responses, perception_changes, location_events,\
+    participant_backgrounds
 
 
 COMMANDS = {
@@ -48,7 +49,7 @@ COMMANDS = {
             dump_location_visits, dump_location_ratings, confidence_ratings,
             package_comparisons, package_documentation_quality, package_community_quality,
             package_preference, concern_ranks, open_responses, na_responses, perception_changes,
-            location_events,
+            location_events, participant_backgrounds,
         ],
     },
 }

@@ -2,20 +2,14 @@ library('lme4')  # for glmer model fitting
 
 completion_rates <- read.csv("/Users/andrew/Adventures/design/studies/01-lab/software/Search-Task-Analysis/data/dump.completions-2016-07-14_18:00.csv")
 
-# Past artifact: reshaping the data table to wide
-# data_wide <- reshape(
-#   completion_rates,
-#   idvar = "User",
-#   timevar = "Concern.Index",
-#   drop = "Task.Index",
-#   direction = "wide"
-# )
-
 # Turn success into a binary variable
 completion_rates$Success <- ifelse(completion_rates$Finished.Early == "Y", 1, 0)
 
-# Convert concern index into character so we can split it
-completion_rates$Concern <- as.character(completion_rates$Concern.Index)
+# Convert concern index into factor so we can split it
+completion_rates$Concern <- as.factor(completion_rates$Concern.Index)
+
+# Convert user into a factor so it's considered categorical
+completion_rates$User.Factor <- as.factor(completion_rates$User)
 
 # Convert concern rank into a binary variable for each level
 # Source: stackoverflow.com/questions/5048638/automatically-expanding-an-r-factor-into-a-collection-of-1-0-indicator-variables
@@ -34,7 +28,7 @@ completion_rates <- cbind(completion_rates, concern_predictors)
 # I need to return to this with someone who knows R and statistics to
 # verify that this was appropriate
 model <- glmer(
-  Success ~ Concern0 + Concern1 + Concern2 + Concern3 + Concern4 + Concern5 + (1|User),
+  Success ~ Concern + (1|User.Factor),
   data = completion_rates,
   family = "binomial"
 )

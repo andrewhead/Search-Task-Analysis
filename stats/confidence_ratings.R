@@ -19,13 +19,13 @@ filtered$Question.Index.Factor = factor(filtered$Question.Index)
 
 # Measure effect of concern on confidence
 m <- art(Confidence ~ Concern.Index.Factor + Error(User.Factor), data=filtered)
-summary(m)
+print(summary(m))
 print("Effect of Concern.Index.Factor")
 print(anova(m))
 
 # Measure effect of question on confidence
 m <- art(Confidence ~ Question.Index.Factor + Error(User.Factor), data=filtered)
-summary(m)
+print(summary(m))
 print("Effect of Question.Index.Factor")
 print(anova(m))
 

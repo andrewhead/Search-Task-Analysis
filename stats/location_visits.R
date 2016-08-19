@@ -1,6 +1,10 @@
 library('plyr')    # required for ddply
 library('ARTool')  # required for aligned rank transform
 
+# Let's show the results of all ANOVAs where the p-value
+# of the result is less than .01
+THRESHOLD_P = .01
+
 location_visits <- read.csv("/Users/andrew/Adventures/design/studies/01-lab/software/Search-Task-Analysis/data/dump.location_visits-2016-07-14_11:39:13.csv", sep="|")
 
 # Filter out the pilot participants
@@ -21,12 +25,42 @@ dwell_times <- ddply(
   .drop = FALSE
 )
 
-# Create a model with aligned rank transform
-# Look for effect from page type and concern index
-# Also look for an interaction between page type and concern index
-model <- art(Time ~ Page.Type * Concern.Index.Factor + Error(User.Factor), data=dwell_times)
-summary(model)
+page_types <- as.vector(unique(dwell_times$Page.Type))
+for (page_type_index in 1:length(page_types)) {
+  
+  # Filter to only the measurements for this page type
+  page_type <- page_types[page_type_index]
+  page_dwell_times <- dwell_times[dwell_times$Page.Type == page_type,]
 
-# Show results of running ANOVA on the model
-print("Is there a significant difference in page time by page type and concern index?")
-print(anova(model))
+  # Create a model with aligned rank transform
+  model <- art(
+    Time ~ Concern.Index.Factor + Error(User.Factor),
+    data = page_dwell_times
+  )
+  anova_results <- anova(model)
+  if (anova_results$`Pr(>F)` <= THRESHOLD_P) {
+    
+    cat("=============================\n")
+    cat("Signs of significant variance\n")
+    cat("Page type: ", page_type, "\n")
+    cat("=============================\n")
+    cat("F(", anova_results$Df, ",", anova_results$Df.res, ") =" ,
+        anova_results$`F value`, ". p =", anova_results$`Pr(>F)`, "\n")
+    
+    page_type_mean_time <- mean(page_dwell_times$Time)
+    concern_mean_times <- ddply(
+      page_dwell_times,
+      .(Concern.Index.Factor),
+      summarize,
+      Time = mean(Time),
+      .drop = FALSE
+    )
+    cat("Mean time on this type of page:", page_type_mean_time, "\n")
+    cat("Mean time by concern:\n")
+    print(concern_mean_times)
+    
+    # cat("Check the summary for valid ART application:\n")
+    # print(summary(model))
+    # cat("\n")
+  }
+}

@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import logging
 from peewee import fn
+from urlparse import urlparse
 
 from dump import dump_csv
 from _urls import get_label
@@ -15,8 +16,8 @@ logger = logging.getLogger('data')
 
 @dump_csv(__name__, [
     "Compute Index", "User", "Task Index", "Concern Index", "Tab ID", "URL",
-    "Domain", "Page Type", "Search Target", "Created by Project Developers",
-    "Page Title", "Start Time", "End Time", "Time passed (s)"],
+    "Domain", "Path", "Fragment", "Query", "Page Type", "Search Target",
+    "Created by Project Developers", "Page Title", "Start Time", "End Time", "Time passed (s)"],
     delimiter='|')
 def main(*args, **kwargs):
 
@@ -35,6 +36,18 @@ def main(*args, **kwargs):
 
     for visit in visits:
 
+        # Split URL into the constituent parts that can be used
+        # to uniquely identify this URL in relation to others.
+        # Note that while the same URL with different query strings may refer to the same
+        # page, this isn't always true.  Take the forum PHP script for Panda3D as an example.
+        # The same is true with fragments, specifically for Google Groups, where fragments
+        # are used to select different groups and topics.
+        url_parsed = urlparse(visit.url)
+        path = url_parsed.path
+        fragment = url_parsed.fragment
+        query = url_parsed.query
+
+        # Fetch semantic labels for this URL
         label = get_label(visit.url)
         domain = label['domain'] if label is not None else "Unclassified"
         page_type = label['name'] if label is not None else "Unclassified"
@@ -55,6 +68,9 @@ def main(*args, **kwargs):
             visit.tab_id,
             visit.url,
             domain,
+            path,
+            fragment,
+            query,
             page_type,
             search_target,
             created_by_project_developers,

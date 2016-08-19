@@ -4,8 +4,10 @@
 from __future__ import unicode_literals
 import logging
 import datetime
+import unittest
 
 from compute.task_periods import compute_task_periods
+from compute.task_periods import _get_concern_index, CONCERN_COUNT
 from tests.base import TestCase
 from tests.modelfactory import create_question_event
 from models import QuestionEvent, TaskPeriod
@@ -96,3 +98,15 @@ class ComputeTaskPeriodTest(TestCase):
         user_ids = [task_period.user_id for task_period in TaskPeriod.select()]
         self.assertIn(0, user_ids)
         self.assertIn(1, user_ids)
+
+
+class ComputeConcernIndexTest(unittest.TestCase):
+
+    def test_concern_index_is_user_index_plus_task_index_mod_concern_count(self):
+        self.assertEqual(
+            _get_concern_index(8, 2),
+            (((8 % CONCERN_COUNT) + 2) % CONCERN_COUNT)
+        )
+
+    def test_task_0_has_concern_index_of_negative_1(self):
+        self.assertEqual(_get_concern_index(8, 0), -1)

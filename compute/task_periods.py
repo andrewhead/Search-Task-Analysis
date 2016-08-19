@@ -17,7 +17,12 @@ def _get_concern_index(user_id, task_index):
     Compute the index of a concern assigned to a user for a task.
     This re-applies the counter-balancing logic from our study design here, so that
     we can recover the the questions that participants were answering for each task.
+
+    Typically, this routine will return a "concern index" between 0 and (CONCERN_COUNT - 1)
+    To disambiguate the 0th task (the introductory task) from the rest, this method returns -1 .
     '''
+    if task_index == 0:
+        return -1
     offset = user_id % CONCERN_COUNT
     return (offset + task_index) % CONCERN_COUNT
 

@@ -50,6 +50,12 @@ def create_location_visit(
         user_id=user_id,
         task_index=task_period.task_index,
         concern_index=task_period.concern_index,
+        # While the location events are currently selected based on their "log date"
+        # (when they're detected by the server), we store their start and end time
+        # based on the time reported from the browser (the "visit_date").  We think that
+        # these will best preserve the actual order that each visit occurred, as well
+        # as the time spent on each of the pages, which will be invariant to the time
+        # that it took to upload each event to the server.
         start=activating_event.visit_date,
         end=deactivating_event.visit_date,
         url=activating_event.url,
@@ -100,6 +106,11 @@ def compute_location_visits(task_compute_index=None):
                     LocationEvent.log_date >= task_period.start,
                     LocationEvent.log_date <= task_period.end,
                 )
+                # While we inspect the "log date" when the server received notice of
+                # the event, we use the "visit date" when the browser experienced the
+                # events to sort them, as we think this will preserve the original
+                # ordering much better.  See the notes in the `create_location_visit`
+                # method for more details.
                 .order_by(LocationEvent.visit_date.asc())
             )
 

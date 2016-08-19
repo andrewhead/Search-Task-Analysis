@@ -29,7 +29,7 @@ class ComputeTaskPeriodTest(TestCase):
         create_question_event(time=START_TIME, event_type='get task')
         create_question_event(
             time=START_TIME + datetime.timedelta(seconds=1),
-            event_type='post responses'
+            event_type='post task'
         )
 
         # Test: make sure a task has been created with the time bounds of the
@@ -49,7 +49,7 @@ class ComputeTaskPeriodTest(TestCase):
         create_question_event(
             question_index=1,
             time=START_TIME + datetime.timedelta(seconds=1),
-            event_type='post responses'
+            event_type='post task'
         )
 
         compute_task_periods()
@@ -63,7 +63,7 @@ class ComputeTaskPeriodTest(TestCase):
         create_question_event(
             user_id=1,
             time=START_TIME + datetime.timedelta(seconds=1),
-            event_type='post responses'
+            event_type='post task'
         )
 
         compute_task_periods()
@@ -82,12 +82,12 @@ class ComputeTaskPeriodTest(TestCase):
         create_question_event(
             user_id=0,
             time=START_TIME + datetime.timedelta(seconds=2),
-            event_type='post responses'
+            event_type='post task'
         )
         create_question_event(
             user_id=1,
             time=START_TIME + datetime.timedelta(seconds=3),
-            event_type='post responses'
+            event_type='post task'
         )
 
         compute_task_periods()

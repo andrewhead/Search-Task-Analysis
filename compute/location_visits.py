@@ -11,10 +11,10 @@ from models import TaskPeriod, LocationEvent, LocationVisit
 logger = logging.getLogger('data')
 
 
-# We start at task 1 instead of 0 for now, as our analysis hasn't yet
-# included any of the preliminary search tasks.
-TASK_COUNT = 6
-FIRST_TASK = 1
+# By starting at task 0, we include all tasks from the introductory
+# one through all six of the support dimension-related tasks.
+TASK_COUNT = 7
+FIRST_TASK = 0
 TASK_RANGE = range(FIRST_TASK, FIRST_TASK + TASK_COUNT)
 
 # These events suggest that a tab has been 'activated' and is now being visited

@@ -49,7 +49,7 @@ LABELS = [{
         ],
     }]
 }, {
-    # Doc home pages / full table of contents
+    # Doc home pages / full table of contents / navigation of documentation.
     # Note that these may have little snippets of step-by-step tutorials
     # and conceptual guides on them.  We can classify these later.
     'name': "Documentation home",
@@ -97,6 +97,7 @@ LABELS = [{
             r"^latest/index\.html$",
             r"^latest/contents\.html$",
             r"^latest/overview\.html$",
+            r"^latest/example/index\.html$",
         ]
     }]
 }, {
@@ -235,6 +236,7 @@ LABELS = [{
             r"^manual/index\.php/Text_Fonts$",
             r"^manual/index\.php/Text_Node$",
             r"^manual/index\.php/OnscreenText$",  # looks like reference too
+            r"^manual/index\.php/Simple_Texturing$",
         ]
     }, {
         'domain': "pygame.org",
@@ -247,7 +249,9 @@ LABELS = [{
     }, {
         'domain': "pytest.org",
         'path': [
+            r"^dev/example/simple\.html$",
             r"^\d+\.\d+\.\d+(\.dev\d+)?/skipping\.html$",
+            r"^latest/example/simple\.html$",
             r"^latest/assert\.html$",
             r"^latest/fixture\.html$",
             r"^latest/mark\.html$",
@@ -293,6 +297,7 @@ LABELS = [{
             r"^models/model/$",
             r"^models/sequential/$",
             r"^preprocessing/image/$",
+            r"^preprocessing/sequence/$",
         ]
     }, {
         'domain': "lasagne.readthedocs.io",
@@ -301,6 +306,15 @@ LABELS = [{
             r"^en/latest/modules/layers\.html$",
             r"^en/latest/modules/layers/helper\.html$",
             r"^en/latest/modules/objectives\.html$",  # could be conceputal guide
+            r"^en/latest/modules/updates\.html$",
+        ]
+    }, {
+        'domain': "nose.readthedocs.io",
+        'path': [
+            # Indexes are arguably also documentation home, though when they seem to mostly
+            # provide an overview of the API and the reference pages (instead of the documentation)
+            # then I will consider it to be reference.
+            r"^en/latest/genindex\.html$",
         ]
     }, {
         'domain': "nose2.readthedocs.io",
@@ -312,6 +326,7 @@ LABELS = [{
         'path': [
             "^reference/python$",  # also tells about releases
             "^reference/(\d+\.\d+\.\d+/|devel)",
+            "^manual/index\.php/List_of_All_Config_Variables$",
         ]
     }, {
         'domain': "pygame.org",
@@ -325,6 +340,7 @@ LABELS = [{
             r"^docs/ref/movie\.html$",
             r"^docs/ref/pygame\.html$",
             r"^docs/ref/rect\.html$",
+            r"^docs/ref/surface\.html$",
             r"^docs/ref/transform\.html$",
         ]
     }]
@@ -452,6 +468,13 @@ LABELS = [{
         'path': r"^forum/",
         'fragment': r"!topic/[^/]+/[^/]+$",
     }, {
+        'domain': "groups.google.com",
+        'path': r"^forum/",
+        # although this looks like a search result, when this showed up in practice,
+        # the URL pointed to a topic or a specific answer to a topic.  This format
+        # may just mean that the URL was accessed through search results.
+        'fragment': r"!searchin/[^/]+/[^/]+/[^/]+/\w+/\w+$",
+    }, {
         'domain': "reddit.com",
         'path': r"^r/[^/]+/comments/[a-z0-9]{6}/[^/]+/$",
     }]
@@ -465,6 +488,9 @@ LABELS = [{
         'domain': "forums.tigsource.com",
         'path': r"^index.php$",
         'query': r"topic=",
+    }, {
+        'domain': "python-forum.org",
+        'path': r"^viewtopic\.php$",
     }]
 }, {
     'name': "Forum",
@@ -491,8 +517,13 @@ LABELS = [{
             # The following are different filters on the forum overview
             # This is kind of like search, but we're not categorizing it as such yet.
             r"^r/[^/]+/gilded/$",
+            r"^r/[^/]+/new/$",
+            r"^r/[^/]+/controversial/$",
             r"^r/[^/]+/top/$",
         ]
+    }, {
+        'domain': "gitbook.com",
+        'path': r"^book/[^/]+/[^/]+/discussions$",
     }]
 }, {
     'name': "Forum new post",
@@ -579,9 +610,18 @@ LABELS = [{
     }, {
         'domain': "duckduckgo.com",
         'path': r"^$",
+        'query': r"^$",
     }, {
         'domain': "search.gmane.org",
         'path': r"^$",
+    }, {
+        'domain': "scholar.google.co.uk",
+        'path': r"^$",
+        'query': r"^$",
+    }, {
+        'domain': "yahoo.com",
+        'path': r"^$",
+        'query': r"^$",
     }]
 }, {
     # Search
@@ -606,11 +646,16 @@ LABELS = [{
         'target': "project home",
         'domain': "pygame.org",
         'path': [
-            # I think participants only arrived at this search by mistake
+            # I think participants only arrived at the "forum" search by mistake
             # It shows up in Google results when you search for Pygame forums
             "^tags/forum$",
             "^tags/example$",
+            "^tags/3d$",
         ]
+    }, {
+        'target': "documentation",
+        'domain': "pygame.org",
+        'path': "^docs/search\.html$",
     }, {
         'target': "project home",
         'domain': "pytest.org",
@@ -621,7 +666,7 @@ LABELS = [{
         'target': 'forum',
         'domain': "groups.google.com",
         'path': r"^forum/",
-        'fragment': r"!searchin/[^/]+/[^/]+/[^/]+/\w+/\w+$",
+        'fragment': r"!searchin/[^/]+/[^/]+$",
     }, {
         'target': "forum",
         'domain': "panda3d.org",
@@ -690,6 +735,10 @@ LABELS = [{
         'domain': "duckduckgo.com",
         'path': r".*",
         'query': "^q=",
+    }, {
+        'domain': "scholar.google.co.uk",
+        'path': "^scholar$",
+        'query': "q=",
     }]
 }, {
     # Code hosting sites: Lot's of types of pages!
@@ -1122,6 +1171,15 @@ LABELS = [{
     }, {
         'domain': "tigsource.com",
         'path': "^$",
+    }, {
+        'domain': "hypatiasoftware.org",
+        'path': r"^2016/03/02/python-tutorial-testing-test-driven-development-py-test-2/$",
+    }, {
+        'domain': "holgerkrekel.net",
+        'path': "^2009/03/03/monkeypatching-in-unit-tests-done-right/$",
+    }, {
+        'domain': "koodaamo.wordpress.com",
+        'path': "^2013/11/29/comparison-of-py-test-and-nose-for-python-testing/$",
     }]
 }, {
     # Blog pages that aren't posts
@@ -1154,7 +1212,10 @@ LABELS = [{
     'project': True,
     'patterns': [{
         'domain': "plus.google.com",
-        'path': r"^communities/\d+$",
+        'path': [
+            r"^communities/\d+$",
+            r"^communities/\d+/stream/[0-9a-f-]+$",
+        ]
     }]
 }, {
     'name': "Group people",
@@ -1186,6 +1247,10 @@ LABELS = [{
         'path': [
             "^gallery/demo\.php$",
             "^manual/index\.php/Sample_Programs:_\w+$",
+            # Like Pygame, we also put screenshots in example projects (mostly because
+            # I think this is what participants were after).
+            "^screens\.php$",
+            "^showss\.php$",
         ]
     }, {
         'domain': "pytest.org",
@@ -1307,6 +1372,10 @@ LABELS = [{
             r"^pypi/[^/]+(/[^/]+)?$",  # optional version number
             r"^pypi/[^/]+/$",  # overview of versions
         ]
+    }, {
+        'domain': "pypi.python.org",
+        'path': r"^pypi$",
+        'query': r"^%3Aaction=browse$",
     }]
 }, {
     # Comparison pages for explicitly comparing one or more packages
@@ -1372,6 +1441,17 @@ LABELS = [{
         'path': r"^podcast/[^/]+/$",
     }]
 }, {
+    # Social networking
+    # This is a broad category (could probably wrap in Facebook, Twitter, etc.)
+    # the only example we have right now is Meetup.  We can break this apart if
+    # we end up finding more distinct social networking sites.
+    'name': "Social networking",
+    'project': False,
+    'patterns': [{
+        'domain': "meetup.com",
+        'path': r"^pyzurich/.*$",
+    }]
+}, {
     # Miscellaneous: things that aren't worth classifying yet
     'name': "Miscellaneous",
     'project': True,
@@ -1412,6 +1492,10 @@ LABELS = [{
         'domain': "cs.nmsu.edu",
         'path': "^~kvillave/papers/Karen6T.pdf$",
     }, {
+        # Paper that looks academic, but it's more just an introduction to two libraries
+        'domain': "arxiv.org",
+        'path': "^pdf/1506\.00619\.pdf$",
+    }, {
         # Presentations
         # Although some blog posts are summaries of presentations, if they have
         # been reformatted to look like a blog post, we include it in "blogs" above.
@@ -1426,6 +1510,10 @@ LABELS = [{
         # purpose when they go to look at YouTube
         'domain': "youtube.com",
         'path': "^$",
+    }, {
+        # Google page advertising Google search engine
+        'domain': "google.com",
+        'path': "^intl/en_us/homepage/search/sp-firefox\.html$",
     }]
 }, {
     # Missing: to my knowledge, these sites were not accessible to participants.
@@ -1458,6 +1546,9 @@ LABELS = [{
     }, {
         'domain': "rene.f0o.com",
         'path': r"^mywiki/PythonGameProgramming$",
+    }, {
+        'domain': "pytest.org",
+        'path': r"^latest/plugin/index\.html$",
     }]
 }, {
     # Redirects: these links just redirected us to another page when we accessed them.

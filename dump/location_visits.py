@@ -12,6 +12,7 @@ from models import LocationVisit
 
 
 logger = logging.getLogger('data')
+PILOT_MAX_USER_ID = 4
 
 
 @dump_csv(__name__, [
@@ -27,7 +28,7 @@ def main(*args, **kwargs):
         LocationVisit
         .select()
         .where(
-            LocationVisit.compute_index == latest_compute_index
+            LocationVisit.compute_index == latest_compute_index,
         )
     )
 
@@ -54,7 +55,9 @@ def main(*args, **kwargs):
         search_target = label.get('target') if label is not None else None
         created_by_project_developers = label['project'] if label is not None else None
 
-        if label is None:
+        # Store missing URLs for non-pilot study participants.
+        # Currently, it's not important for us to be able to classify URLs for pilot participants.
+        if label is None and visit.user_id > PILOT_MAX_USER_ID:
             urls_without_labels.add(visit.url)
 
         time_passed = visit.end - visit.start

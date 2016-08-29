@@ -7,7 +7,7 @@ import datetime
 import json
 import copy
 from peewee import Model, SqliteDatabase, Proxy, PostgresqlDatabase,\
-    IntegerField, DateTimeField, TextField, BooleanField
+    IntegerField, DateTimeField, TextField, BooleanField, FloatField, ForeignKeyField
 
 
 logger = logging.getLogger('data')
@@ -179,6 +179,44 @@ class LocationRating(ProxyModel):
     visit_date = DateTimeField()
 
 
+class NavigationVertex(ProxyModel):
+    '''
+    A vertex in a graph of how participants navigated the web.
+    Each vertex represents a type of page participants spent time on.
+    '''
+    # Keep a record of when this record was computed
+    compute_index = IntegerField(index=True)
+    date = DateTimeField(default=datetime.datetime.now)
+
+    page_type = TextField()
+    occurrences = IntegerField()
+    total_time = FloatField()
+    mean_time = FloatField()
+
+
+class NavigationEdge(ProxyModel):
+    '''
+    An edge in a graph of how participants navigated the web.
+    Each edge represents a transition between one type of page and another,
+    where the target vertex is a page type viewed right after that for the source vertex.
+    '''
+    # Keep a record of when this record was computed
+    compute_index = IntegerField(index=True)
+    date = DateTimeField(default=datetime.datetime.now)
+
+    # Note that we needed to override the default "related_name" for the two vertices because
+    # otherwise there was a name conflict of properties of the NavigationVertex model:
+    # two sets of edges with the same name were getting added to the NavigationVertex model.
+    source_vertex = ForeignKeyField(NavigationVertex, related_name='out_edges')
+    target_vertex = ForeignKeyField(NavigationVertex, related_name='in_edges')
+    occurrences = IntegerField()
+
+    # The "transition probability" of how likely one is to take this edge
+    # from the source vertex.  This is found by taking the count of occurrences
+    # of all out-going edges from a node and normalizing them.
+    probability = FloatField()
+
+
 class Question(ProxyModel):
     '''
     Answers to a set of follow-up questions we ask users after
@@ -288,4 +326,6 @@ def create_tables():
         TaskPeriod,
         LocationVisit,
         LocationRating,
+        NavigationVertex,
+        NavigationEdge,
     ], safe=True)

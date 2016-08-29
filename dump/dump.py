@@ -65,16 +65,24 @@ def dump_csv(dest_basename, column_names, delimiter=','):
     )
 
 
+def make_dump_filename(dest_basename, file_extension):
+    '''
+    Create the name of a file for the results of a data "dump".
+    One side-effect of this function is the creation of a 'dump' directory where
+    this file can be saved.
+    '''
+    full_filename = dest_basename + '-' + time.strftime("%Y-%m-%d_%H:%M:%S") + file_extension
+    if not os.path.exists('data'):
+        os.makedirs('data')
+    dump_path = os.path.join('data', full_filename)
+    return dump_path
+
+
 def _wrap_harvest_func_with_dump_func(harvest_func, dump_func, dest_basename, file_extension):
 
     @functools.wraps(harvest_func)
     def harvest_and_dump(*args, **kwargs):
-
-        full_filename = dest_basename + '-' + time.strftime("%Y-%m-%d_%H:%M:%S") + file_extension
-        if not os.path.exists('data'):
-            os.makedirs('data')
-        dump_path = os.path.join('data', full_filename)
-
+        dump_path = make_dump_filename(dest_basename, file_extension)
         with codecs.open(dump_path, 'w', encoding='utf-8') as dump_file:
             dump_func(harvest_func, dump_file, *args, **kwargs)
 

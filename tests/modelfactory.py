@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import logging
 import datetime
 
-from models import QuestionEvent, LocationEvent, TaskPeriod
+from models import QuestionEvent, LocationEvent, TaskPeriod, LocationVisit
 
 
 logger = logging.getLogger('data')
@@ -57,3 +57,19 @@ def create_task_period(**kwargs):
     }
     arguments.update(kwargs)
     return TaskPeriod.create(**arguments)
+
+
+def create_location_visit(**kwargs):
+    arguments = {
+        'compute_index': 0,
+        'user_id': 0,
+        'task_index': 1,
+        'concern_index': 1,
+        'url': "http://url.com",
+        'tab_id': 1,
+        'title': "Title",
+        'start': datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+        'end': datetime.datetime(2000, 1, 1, 12, 0, 2, 0),
+    }
+    arguments.update(kwargs)
+    return LocationVisit.create(**arguments)

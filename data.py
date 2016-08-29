@@ -6,6 +6,7 @@ import logging
 import argparse
 import unittest
 import os
+import sys
 
 # Set up logger for the sub-commands to use.
 # Note that this setup must occur before the other modules are imported.
@@ -19,7 +20,7 @@ data_logger.setLevel(logging.DEBUG)
 data_logger.addHandler(log_handler)
 data_logger.propagate = False
 
-from models import create_tables, init_database
+from models import create_tables, init_database, Command
 from compute import task_periods, location_visits, location_ratings, navigation_graph
 from migrate import run_migration
 from dump import location_visits as dump_location_visits,\
@@ -105,6 +106,9 @@ if __name__ == '__main__':
     if args.command != 'tests':
         init_database(args.db, config_filename=args.db_config)
         create_tables()
+
+        # Save a record of this command that we can refer back to later if needed
+        Command.create(arguments=str(sys.argv))
 
     # Invoke the main program that was specified by the submodule
     if args.func is not None:

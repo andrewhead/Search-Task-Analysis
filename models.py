@@ -85,6 +85,20 @@ class ProxyModel(Model):
         database = db_proxy
 
 
+class Command(ProxyModel):
+    '''
+    A data-processing command run as part of this package.
+    We save this so we can do forensics on what data and commands we used to produce
+    computations and dumps of data.
+    '''
+
+    # Keep a record of when this command was performed
+    date = DateTimeField(default=datetime.datetime.now)
+
+    # The main part of this record is just a list of arguments we used to perform it
+    arguments = TextField()
+
+
 class Prequestionnaire(ProxyModel):
     ''' A questionnaire with information about a participant's background. '''
 
@@ -323,6 +337,7 @@ def init_database(db_type, config_filename=None):
 
 def create_tables():
     db_proxy.create_tables([
+        Command,
         TaskPeriod,
         LocationVisit,
         LocationRating,

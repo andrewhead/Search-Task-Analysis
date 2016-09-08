@@ -38,8 +38,8 @@ class StandardizeUrlTest(unittest.TestCase):
         self.assertEqual(standardized, "panda3d.org/showss.php?shot=path/to/photo")
 
     def test_youtube_videos_preserve_v_parameter(self):
-        standardized = standardize_url("http://youtube.com?v=DRR9fOXkfRE")
-        self.assertEqual(standardized, "youtube.com?v=DRR9fOXkfRE")
+        standardized = standardize_url("http://youtube.com/watch?v=DRR9fOXkfRE")
+        self.assertEqual(standardized, "youtube.com/watch?v=DRR9fOXkfRE")
 
     def test_google_groups_topic_keep_fragment(self):
         standardized = standardize_url(
@@ -90,3 +90,7 @@ class StandardizeUrlTest(unittest.TestCase):
     def test_pages_viewed_as_source_gets_view_source_prepended(self):
         standardized = standardize_url("view-source:http://site.com")
         self.assertEqual(standardized, "view-source:site.com")
+
+    def test_bluejeans_site_standardizes_to_bluejeans_domain(self):
+        standardized = standardize_url("http://bluejeans.com/long-path#some-fragment")
+        self.assertEqual(standardized, "bluejeans.com")

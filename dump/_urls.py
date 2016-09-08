@@ -1605,19 +1605,19 @@ def standardize_url(url):
         # a topic number and a forum number, a few tests on my part showed that
         # the forum number isn't actually needed.  The topic numbers
         # are probably unique and independent of forum number.
-        if path == "/viewtopic.php" and re.search(r"(^|&)t=", query):
+        if re.match("(/forums)?/viewtopic.php", path) and re.search(r"(^|&)t=", query):
             topic_id = re.search(r"(^|&)t=(\d+)", query).group(2)
             return domain_without_www + path + "?t=" + topic_id
-        elif path == "/viewforum.php" and re.search(r"(^|&)f=", query):
+        elif re.match("(/forums)?/viewforum.php", path) and re.search(r"(^|&)f=", query):
             forum_id = re.search(r"(^|&)f=(\d+)", query).group(2)
             return domain_without_www + path + "?f=" + forum_id
         elif path == "/showss.php" and re.search(r"(^|&)shot=", query):
             shot_name = re.search(r"(^|&)shot=([^&]+)", query).group(2)
             return domain_without_www + path + "?shot=" + shot_name
 
-    elif domain_without_www == "youtube.com" and path == "" and re.search(r"(^|&)v=", query):
+    elif domain_without_www == "youtube.com" and path == "/watch" and re.search(r"(^|&)v=", query):
         video_id = re.search(r"(^|&)v=(\w+)", query).group(2)
-        return domain_without_www + "?v=" + video_id
+        return domain_without_www + path + "?v=" + video_id
 
     elif domain_without_www == "groups.google.com":
 
@@ -1657,7 +1657,8 @@ def standardize_url(url):
 
     # If this is the experiment site, return just one domain.  This squashes all visits
     # to the experiment site into just one URL
-    elif domain_without_www == "searchlogger.tutorons.com":
+    elif (domain_without_www == "searchlogger.tutorons.com" or
+            domain_without_www == "bluejeans.com"):
         return domain_without_www
 
     # Squash all browser pages (new tabs, preferences pages, etc.) into one unique URL

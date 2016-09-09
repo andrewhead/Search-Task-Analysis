@@ -231,6 +231,21 @@ class NavigationEdge(ProxyModel):
     probability = FloatField()
 
 
+class NavigationNgram(ProxyModel):
+    '''
+    A sequence of types of pages that a participant visited when learning about a
+    support dimension.  Variable length.
+    '''
+    # Keep a record of when this record was computed
+    compute_index = IntegerField(index=True)
+    date = DateTimeField(default=datetime.datetime.now)
+
+    user_id = IntegerField(index=True)
+    concern_index = IntegerField(index=True)
+    length = IntegerField(index=True)
+    ngram = TextField(index=True)  # comma-separated list of page types visited in sequence
+
+
 class Question(ProxyModel):
     '''
     Answers to a set of follow-up questions we ask users after
@@ -343,4 +358,5 @@ def create_tables():
         LocationRating,
         NavigationVertex,
         NavigationEdge,
+        NavigationNgram,
     ], safe=True)

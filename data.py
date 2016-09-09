@@ -21,20 +21,24 @@ data_logger.addHandler(log_handler)
 data_logger.propagate = False
 
 from models import create_tables, init_database, Command
-from compute import task_periods, location_visits, location_ratings, navigation_graph
+from compute import task_periods, location_visits, location_ratings, navigation_graph,\
+    navigation_ngrams
 from migrate import run_migration
 from dump import location_visits as dump_location_visits,\
     location_ratings as dump_location_ratings, confidence_ratings, package_comparisons,\
     package_documentation_quality, package_community_quality, package_preference,\
     concern_ranks, open_responses, na_responses, perception_changes, location_events,\
-    participant_backgrounds, navigation_graph as dump_navigation_graph
+    participant_backgrounds, navigation_graph as dump_navigation_graph,\
+    navigation_ngrams as dump_navigation_ngrams
 
 
 COMMANDS = {
     'compute': {
         'description': "Compute derived fields from existing data.",
         'module_help': "Type of data to compute.",
-        'modules': [task_periods, location_visits, location_ratings, navigation_graph],
+        'modules': [
+            task_periods, location_visits, location_ratings, navigation_graph, navigation_ngrams
+        ],
     },
     'migrate': {
         'description':
@@ -50,7 +54,7 @@ COMMANDS = {
             dump_location_visits, dump_location_ratings, confidence_ratings,
             package_comparisons, package_documentation_quality, package_community_quality,
             package_preference, concern_ranks, open_responses, na_responses, perception_changes,
-            location_events, participant_backgrounds, dump_navigation_graph
+            location_events, participant_backgrounds, dump_navigation_graph, dump_navigation_ngrams
         ],
     },
 }

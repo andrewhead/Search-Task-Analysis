@@ -98,7 +98,7 @@ def configure_parser(parser):
         "page_types_json_filename",
         help=(
             "Name of a JSON file that maps URLs to file types.  " +
-            "The format of each row should be:\n" +
+            "The format of each row should be:" +
             "\"<url>\": {\"main_type\": \"<main type>\", \"types\": " +
             "[<list of all relevant types>]}"
         )

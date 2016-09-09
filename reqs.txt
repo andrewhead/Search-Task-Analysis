@@ -1,3 +1,4 @@
+nltk==3.2.1
 numpy==1.11.1
 peewee==2.8.0
 psycopg2==2.6.1

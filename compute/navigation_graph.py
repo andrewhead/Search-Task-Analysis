@@ -5,7 +5,10 @@ from __future__ import unicode_literals
 import logging
 import itertools
 from peewee import fn
+import json
+from progressbar import ProgressBar, Percentage, Bar, ETA, Counter, RotatingMarker
 
+from dump._urls import standardize_url
 from models import LocationVisit, NavigationVertex, NavigationEdge
 
 
@@ -38,7 +41,10 @@ class Edge(object):
         self.probability = probability
 
 
-def compute_navigation_graph(page_type_lookup, concern_index=None):
+def compute_navigation_graph(
+        page_type_lookup, exclude_users=None, show_progress=False, concern_index=None):
+
+    exclude_users = [] if exclude_users is None else exclude_users
 
     # Create a new index for this computation
     last_compute_index = NavigationVertex.select(
@@ -56,8 +62,20 @@ def compute_navigation_graph(page_type_lookup, concern_index=None):
         visits = visits.where(LocationVisit.concern_index == concern_index)
 
     # Get the distinct participant IDs and concern indexes
-    participant_ids = set([visit.user_id for visit in visits])
+    # Exclude any users that were not requested as part of the analysis
+    participant_ids = set([visit.user_id for visit in visits if visit.user_id not in exclude_users])
     concern_indexes = set([visit.concern_index for visit in visits])
+
+    # Set up progress bar.
+    total_iterations_count = len(participant_ids) * len(concern_indexes)
+    if show_progress:
+        progress_bar = ProgressBar(maxval=total_iterations_count, widgets=[
+            'Progress: ', Percentage(),
+            ' ', Bar(marker=RotatingMarker()),
+            ' ', ETA(),
+            ' Read ', Counter(), ' / ' + str(total_iterations_count) + ' sessions.'
+        ])
+        progress_bar.start()
 
     # The list of vertices needs to be populated with a start and end node.
     # All navigation behavior starts at the "Start" node, and ends at the "End" node
@@ -67,6 +85,7 @@ def compute_navigation_graph(page_type_lookup, concern_index=None):
     }
     edges = {}
     last_vertex = vertices["Start"]
+    iterations_count = 0
 
     # Go through every concern for every participant.  For each page they visit,
     # increment the visits to the corresponding vertex.  For each transition from one
@@ -82,8 +101,9 @@ def compute_navigation_graph(page_type_lookup, concern_index=None):
             for visit in participant_concern_visits:
 
                 # Get the type of the page visited
-                if visit.url in page_type_lookup:
-                    url_info = page_type_lookup[visit.url]
+                standardized_url = standardize_url(visit.url)
+                if standardized_url in page_type_lookup:
+                    url_info = page_type_lookup[standardized_url]
                     page_type = url_info['main_type']
                     # If this is a redirect, then just skip it.  It's more important
                     # to link the URL before it to the link the redirect points to.
@@ -91,7 +111,8 @@ def compute_navigation_graph(page_type_lookup, concern_index=None):
                         continue
                 else:
                     logger.warn(
-                        "URL %s not in page type lookup.  Giving it 'Unknown' type", visit.url
+                        "URL %s not in page type lookup.  Giving it 'Unknown' type",
+                        standardized_url
                     )
                     page_type = "Unknown"
 
@@ -126,6 +147,10 @@ def compute_navigation_graph(page_type_lookup, concern_index=None):
 
             # After each participant or each concern, we reset the last_page_type to "Start"
             last_vertex = vertices['Start']
+
+            if show_progress:
+                iterations_count += 1
+                progress_bar.update(iterations_count)
 
     # Compute the mean time spent on each vertex
     for vertex in vertices.values():
@@ -164,7 +189,18 @@ def compute_navigation_graph(page_type_lookup, concern_index=None):
         vertex_models[vertex.page_type] = vertex_model
 
     # Save all edges to the database
-    for edge in edges.values():
+    # We use a progress bar for this as there might be a lot of edges and
+    # we upload each of them separately to the database.
+    if show_progress:
+        progress_bar = ProgressBar(maxval=len(edges), widgets=[
+            'Progress: ', Percentage(),
+            ' ', Bar(marker=RotatingMarker()),
+            ' ', ETA(),
+            ' Updated graph with ', Counter(), ' / ' + str(len(edges)) + ' edges.'
+        ])
+        progress_bar.start()
+
+    for edge_index, edge in enumerate(edges.values(), start=1):
         NavigationEdge.create(
             compute_index=compute_index,
             source_vertex=vertex_models[edge.source_vertex.page_type],
@@ -172,10 +208,23 @@ def compute_navigation_graph(page_type_lookup, concern_index=None):
             occurrences=edge.occurrences,
             probability=edge.probability,
         )
+        if show_progress:
+            progress_bar.update(edge_index)
+
+    if show_progress:
+        progress_bar.finish()
+
+    if show_progress:
+        progress_bar.finish()
 
 
-def main(concern_index, *args, **kwargs):
-    compute_navigation_graph(concern_index)
+def main(page_types_json_filename, exclude_users, show_progress, concern_index, *args, **kwargs):
+
+    # Load a dictionary that describes the page types for URLs visited
+    with open(page_types_json_filename) as page_types_file:
+        page_type_lookup = json.load(page_types_file)
+
+    compute_navigation_graph(page_type_lookup, exclude_users, show_progress, concern_index)
 
 
 def configure_parser(parser):
@@ -189,6 +238,17 @@ def configure_parser(parser):
             "\"<url>\": {\"main_type\": \"<main type>\", \"types\": " +
             "[<list of all relevant types>]}"
         )
+    )
+    parser.add_argument(
+        "--show-progress",
+        action="store_true",
+        help="Show progress of how much data has been added to the graph."
+    )
+    parser.add_argument(
+        "--exclude-users",
+        nargs="+",
+        type=int,
+        help="List of indexes of users to exclude from analysis"
     )
     parser.add_argument(
         "--concern-index",

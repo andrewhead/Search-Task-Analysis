@@ -14,13 +14,14 @@ logger = logging.getLogger('data')
 
 # Constants for laying out and drawing the graph.
 MINIMUM_FONT_SIZE = 9
-MINIMUM_VERTEX_SIZE = .65
-EDGE_PEN_WIDTH_PER_PROBABILITY = 14
+MINIMUM_VERTEX_SIZE = .85
+EDGE_PEN_WIDTH_PER_PROBABILITY = 2
 
 # This determines how many of the frequent page types and transitions are shown.
 # Modify these to either reduce clutter or to show more information.
-PAGE_TYPE_PERCENTILE = 80
-TRANSITION_PERCENTILE = 90
+PAGE_TYPE_PERCENTILE = 0
+TRANSITION_PERCENTAGE_THRESHOLD = .1
+# TRANSITION_PERCENTILE = 80
 
 
 def main(compute_index, output_format, *args, **kwargs):
@@ -71,6 +72,8 @@ def main(compute_index, output_format, *args, **kwargs):
 
     # Add vertices to graph and save vertex properties
     for vertex_model in vertex_models:
+
+        # Add a vertex to the graph and save its properties
         vertex = graph.add_vertex()
         vertices[vertex_model.id] = vertex
         vertex_page_types.append(vertex_model.page_type)
@@ -91,6 +94,28 @@ def main(compute_index, output_format, *args, **kwargs):
         edge_occurrences.append(edge_model.occurrences)
         edge_probabilities.append(edge_model.probability)
 
+    # Fix the positions and colors of the first and final vertices
+    vertex_positions = []
+    vertex_pins = []
+    vertex_colors = []
+    for page_type in vertex_page_types:
+        if page_type == 'Start':
+            vertex_positions.append([0.5, 3])
+            vertex_pins.append(True)
+            vertex_colors.append("#b2f3ba")  # light green
+        elif page_type == 'End':
+            vertex_positions.append([9.5, 3])
+            vertex_pins.append(True)
+            vertex_colors.append("#f3a4a7")  # light red
+        else:
+            vertex_positions.append([5, 3])
+            vertex_pins.append(False)
+            vertex_colors.append("white")
+    vertex_position_property =\
+        graph.new_vertex_property(str("vector<double>"), vals=vertex_positions)
+    vertex_pin_property = graph.new_vertex_property(str("boolean"), vals=vertex_pins)
+    vertex_color_property = graph.new_vertex_property(str("string"), vals=vertex_colors)
+
     # Because we're using unicode literals, each of the "value types" need to be coerced
     # to a string explicitly before creating new properties.
     # When making labels, we take advantage of the fact that most page types only have one
@@ -102,37 +127,52 @@ def main(compute_index, output_format, *args, **kwargs):
     # While larger size means more visits, the relationship isn't linear.
     # The "log" is necessary to make sure that the difference isn't too severe between vertices.
     # This was hand-tailored to just look good.
-    vertex_occurrences_array = np.array(vertex_occurrences)
-    vertex_size_array = np.log((vertex_occurrences_array * float(10)) / np.max(vertex_occurrences))
-    small_vertex_indexes = vertex_size_array < MINIMUM_VERTEX_SIZE
-    vertex_size_array[small_vertex_indexes] = MINIMUM_VERTEX_SIZE
-    vertex_sizes = graph.new_vertex_property(str("float"), vals=vertex_size_array)
+    # vertex_occurrences_array = np.array(vertex_occurrences)
+    # vertex_size_array = np.log((vertex_occurrences_array * float(10)) / np.max(vertex_occurrences))  # noqa
+    # small_vertex_indexes = vertex_size_array < MINIMUM_VERTEX_SIZE
+    # vertex_size_array[small_vertex_indexes] = MINIMUM_VERTEX_SIZE
+    # vertex_sizes = graph.new_vertex_property(str("float"), vals=vertex_size_array)
 
     # Compute the font sizes to scale with vertex size.
     # This was hand-tailored to just look good too.
-    font_size_array = vertex_size_array * 10
-    small_font_indexes = font_size_array < MINIMUM_FONT_SIZE
-    font_size_array[small_font_indexes] = MINIMUM_FONT_SIZE
-    vertex_font_sizes = graph.new_vertex_property(str("double"), vals=font_size_array)
+    # font_size_array = vertex_size_array * 10
+    # small_font_indexes = font_size_array < MINIMUM_FONT_SIZE
+    # font_size_array[small_font_indexes] = MINIMUM_FONT_SIZE
+    # vertex_font_sizes = graph.new_vertex_property(str("double"), vals=font_size_array)
+
+    # Edge label is determined by the probability that it is taken
+    edge_labels = graph.new_edge_property(str("float"), vals=np.round(edge_probabilities, 2))
 
     # Edge thickness is determined by how likely a participant was to follow that transition
     edge_widths = graph.new_edge_property(
         str("float"),
-        [p * EDGE_PEN_WIDTH_PER_PROBABILITY for p in edge_probabilities],
+        vals=[p * EDGE_PEN_WIDTH_PER_PROBABILITY for p in edge_probabilities],
     )
 
     # Show only the top most frequently visited page types
     vertex_occurrences_array = np.array(vertex_occurrences)
     is_vertex_frequent = vertex_occurrences_array >=\
         np.percentile(vertex_occurrences_array, PAGE_TYPE_PERCENTILE)
-    vertex_filter = graph.new_vertex_property(str("boolean"), vals=is_vertex_frequent)
+    is_vertex_start_or_end = np.logical_or(
+        np.array(vertex_page_types) == "Start",
+        np.array(vertex_page_types) == "End"
+    )
+    show_vertex = np.logical_or(is_vertex_frequent, is_vertex_start_or_end)
+    vertex_filter = graph.new_vertex_property(str("boolean"), vals=show_vertex)
     graph.set_vertex_filter(vertex_filter)
 
     # Show only the top most taken transitions
-    edge_occurrences_array = np.array(edge_occurrences)
-    is_edge_frequent = edge_occurrences_array >=\
-        np.percentile(edge_occurrences_array, TRANSITION_PERCENTILE)
-    edge_filter = graph.new_edge_property(str("boolean"), vals=is_edge_frequent)
+    # This uses two conditions:
+    # First, the transition has to have been taken a large number of times---the
+    # number of occurrences must be within a certain percentile of all occurrences taken
+    # Second, the transition has to have a certain minimum probability of occurring
+    # edge_occurrences_array = np.array(edge_occurrences)
+    edge_probabilities_array = np.array(edge_probabilities)
+    # does_edge_occur_often = edge_occurrences_array >=\
+    #     np.percentile(edge_occurrences_array, TRANSITION_PERCENTILE)
+    does_edge_have_high_probability = edge_probabilities_array >= TRANSITION_PERCENTAGE_THRESHOLD
+    # is_edge_frequent = np.logical_and(does_edge_occur_often, does_edge_have_high_probability)
+    edge_filter = graph.new_edge_property(str("boolean"), vals=does_edge_have_high_probability)
     graph.set_edge_filter(edge_filter)
 
     # Create a new filename for the output that includes the index of the version of
@@ -145,29 +185,37 @@ def main(compute_index, output_format, *args, **kwargs):
     # Draw the graph
     gt.graphviz_draw(
         graph,
-        size=(40, 20),          # resulting image should be about 40cm by 20cm (seems unreliable)
-        overlap=False,          # nodes should not be drawn on top of each other
-        elen=1.5,                 # edges should be ~2in. long
-        vcolor="#ffffff",       # vertices are white
-        penwidth=edge_widths,   # edge thickness
-        vsize=vertex_sizes,     # vertex sizes
+        size=(30, 15),                 # resulting image should be about 30cm by 15cm
+        overlap=False,                 # nodes should not be drawn on top of each other
+        elen=.5,                       # edges should be ~1/2 in. long
+        penwidth=edge_widths,          # edge thickness
+        # vsize=vertex_sizes,          # vertex sizes
+        vsize=MINIMUM_VERTEX_SIZE,     # vertex sizes
+        layout='fdp',                  # this layout engine lets us set positions of start and end
+        pin=vertex_pin_property,       # pins the positions for some vertices
+        pos=vertex_position_property,  # set the position of some vertices
+        vcolor=vertex_color_property,
         # For reference about graphviz vertex and edge properties in the next
         # two dictionaries, see this page:
         # http://www.graphviz.org/doc/info/attrs.html
+        gprops={
+            'rankdir': "LR",       # layout the vertices from left to right
+            'splines': 'curved',
+        },
         vprops={
-            'fontsize': vertex_font_sizes,  # size of labels
+            # 'fontsize': vertex_font_sizes,# size of labels
+            'fontsize': MINIMUM_FONT_SIZE,  # size of labels
             'label': vertex_labels,         # text of labels
             'shape': 'circle',
             'fixedsize': 'shape',           # don't scale vertices to fit text (looks weird)
         },
         eprops={
+            'xlabel': edge_labels,  # xlabel (instead of label) distances labels from edges
+            'fontsize': 6.0,
             # Surprisingly, we have to explicitly set these arrow properties
             # to make sure taht edges appear with a direction
             'arrowhead': 'normal',
             'dir': 'forward',
-            # Setting splines to true makes sure that if there are edges in both directions
-            # between two vertices, both of them get drawn and they don't overlap.
-            'splines': 'true',
         },
         output=output_filename,
         output_format=output_format,

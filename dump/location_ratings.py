@@ -4,19 +4,25 @@
 from __future__ import unicode_literals
 import logging
 from peewee import fn
+from urlparse import urlparse
+import json
 
 from dump import dump_csv
-from _urls import get_label
+from _urls import standardize_url
 from models import LocationRating
 
 
 logger = logging.getLogger('data')
+PILOT_MAX_USER_ID = 4
 
 
 @dump_csv(__name__, [
     "Compute Index", "User", "Task Index", "Concern Index", "URL", "Domain", "Page Type",
-    "Search Target", "Created by Project Developers", "Rating", "Page Title", "Visit Date"])
-def main(*args, **kwargs):
+    "Rating", "Page Title", "Visit Date"])
+def main(page_types_json_filename, *args, **kwargs):
+
+    with open(page_types_json_filename) as page_types_file:
+        page_types = json.load(page_types_file)
 
     # Only dump the most recently computed location ratings (ignore all others).
     latest_compute_index = LocationRating.select(fn.Max(LocationRating.compute_index)).scalar()
@@ -33,14 +39,19 @@ def main(*args, **kwargs):
 
     for rating in ratings:
 
-        label = get_label(rating.url)
-        domain = label['domain'] if label is not None else "Unclassified"
-        page_type = label['name'] if label is not None else "Unclassified"
-        search_target = label.get('target') if label is not None else None
-        created_by_project_developers = label['project'] if label is not None else None
+        # Get the domain name of where this rating happened
+        url_parsed = urlparse(rating.url)
+        domain = url_parsed.netloc.lstrip("www.")
 
-        if label is None:
-            urls_without_labels.add(rating.url)
+        # Fetch semantic labels for this URL
+        # Store missing URLs for non-pilot study participants.
+        # Currently, it's not important for us to be able to classify URLs for pilot participants.
+        unique_url = standardize_url(rating.url)
+        if unique_url not in page_types:
+            if rating.user_id > PILOT_MAX_USER_ID:
+                urls_without_labels.add(unique_url)
+        else:
+            page_type = page_types[unique_url]['main_type']
 
         yield [[
             rating.compute_index,
@@ -50,8 +61,6 @@ def main(*args, **kwargs):
             rating.url,
             domain,
             page_type,
-            search_target,
-            created_by_project_developers,
             rating.rating,
             rating.title,
             rating.visit_date,
@@ -66,3 +75,12 @@ def main(*args, **kwargs):
 
 def configure_parser(parser):
     parser.description = "Dump most recently computed record of all user ratings of web pages."
+    parser.add_argument(
+        "page_types_json_filename",
+        help=(
+            "Name of a JSON file that maps URLs to file types.  " +
+            "The format of each row should be:" +
+            "\"<url>\": {\"main_type\": \"<main type>\", \"types\": " +
+            "[<list of all relevant types>]}"
+        )
+    )

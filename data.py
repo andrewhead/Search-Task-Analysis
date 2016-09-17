@@ -22,7 +22,7 @@ data_logger.propagate = False
 
 from models import create_tables, init_database, Command
 from compute import task_periods, location_visits, location_ratings, navigation_graph,\
-    navigation_ngrams, unique_urls
+    navigation_ngrams, unique_urls, unique_cues
 from migrate import run_migration
 from dump import location_visits as dump_location_visits,\
     location_ratings as dump_location_ratings, confidence_ratings, package_comparisons,\
@@ -38,7 +38,7 @@ COMMANDS = {
         'module_help': "Type of data to compute.",
         'modules': [
             task_periods, location_visits, location_ratings, navigation_graph, navigation_ngrams,
-            unique_urls,
+            unique_urls, unique_cues,
         ],
     },
     'migrate': {

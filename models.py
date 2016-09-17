@@ -247,15 +247,28 @@ class NavigationNgram(ProxyModel):
 
 
 class UniqueUrl(ProxyModel):
-    '''
-    A record of whether a URL was unique for a participant.
-    '''
+    ''' A record of whether a URL was unique for a participant. '''
     # Keep a record of when this record was computed
     compute_index = IntegerField(index=True)
     date = DateTimeField(default=datetime.datetime.now)
 
     user_id = IntegerField(index=True)
     url = TextField(index=True)
+    unique = BooleanField(index=True)
+
+
+class UniqueCue(ProxyModel):
+    ''' A record of whether a cue a participant mentioned was unique. '''
+    # Keep a record of when this record was computed
+    compute_index = IntegerField(index=True)
+    date = DateTimeField(default=datetime.datetime.now)
+
+    # In contrast to UniqueUrl and almost all other models here, participant_id here is on
+    # an alternate scale of the IDs that participants had in MAXQDA when I was coding
+    # the qualitative data.  You will have to do some post-processing to join this data
+    # with the user_id field of other models.
+    participant_id = IntegerField(index=True)
+    cue = TextField(index=True)
     unique = BooleanField(index=True)
 
 
@@ -373,4 +386,5 @@ def create_tables():
         NavigationEdge,
         NavigationNgram,
         UniqueUrl,
+        UniqueCue,
     ], safe=True)

@@ -246,6 +246,19 @@ class NavigationNgram(ProxyModel):
     ngram = TextField(index=True)  # comma-separated list of page types visited in sequence
 
 
+class UniqueUrl(ProxyModel):
+    '''
+    A record of whether a URL was unique for a participant.
+    '''
+    # Keep a record of when this record was computed
+    compute_index = IntegerField(index=True)
+    date = DateTimeField(default=datetime.datetime.now)
+
+    user_id = IntegerField(index=True)
+    url = TextField(index=True)
+    unique = BooleanField(index=True)
+
+
 class Question(ProxyModel):
     '''
     Answers to a set of follow-up questions we ask users after
@@ -359,4 +372,5 @@ def create_tables():
         NavigationVertex,
         NavigationEdge,
         NavigationNgram,
+        UniqueUrl,
     ], safe=True)

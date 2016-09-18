@@ -172,3 +172,68 @@ class ComputeLocationRatingTest(TestCase):
         compute_location_ratings(task_compute_index=1)
         rating = LocationRating.select()[0]
         self.assertEqual(rating.task_index, 3)
+
+    def test_skip_ratings_that_couldnt_be_classified(self):
+
+        # The first and last events don't fall into a valid task period
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 11, 0, 0, 0),
+            event_type="Rating: 0",
+            url="http://url1.com",
+            user_id=0,
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            event_type="Rating: 1",
+            url="http://url2.com",
+            user_id=0,
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 13, 0, 0, 0),
+            event_type="Rating: 2",
+            url="http://url2.com",
+            user_id=0,
+        )
+
+        create_task_period(
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            user_id=0,
+        )
+
+        compute_location_ratings()
+        ratings = LocationRating.select()
+        self.assertEqual(ratings.count(), 1)
+        self.assertEqual(ratings.first().rating, 1)
+
+    def test_return_ratings_that_couldnt_be_classified(self):
+
+        # The first and last events don't fall into a valid task period
+        unmatched_rating_0 = create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 11, 0, 0, 0),
+            event_type="Rating: 0",
+            url="http://url1.com",
+            user_id=0,
+        )
+        create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 12, 0, 1, 0),
+            event_type="Rating: 1",
+            url="http://url2.com",
+            user_id=0,
+        )
+        unmatched_rating_1 = create_location_event(
+            visit_date=datetime.datetime(2000, 1, 1, 13, 0, 0, 0),
+            event_type="Rating: 2",
+            url="http://url2.com",
+            user_id=0,
+        )
+
+        create_task_period(
+            start=datetime.datetime(2000, 1, 1, 12, 0, 0, 0),
+            end=datetime.datetime(2000, 1, 1, 12, 2, 0, 0),
+            user_id=0,
+        )
+
+        unclassified = compute_location_ratings()
+        self.assertIn({'user_id': 0, 'event_id': unmatched_rating_0.id}, unclassified)
+        self.assertIn({'user_id': 0, 'event_id': unmatched_rating_1.id}, unclassified)

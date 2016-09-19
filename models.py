@@ -191,6 +191,7 @@ class LocationRating(ProxyModel):
     title = TextField()
     rating = IntegerField(index=True)
     visit_date = DateTimeField()
+    hand_aligned = BooleanField()  # whether this was matched to a task by manual labels
 
 
 class NavigationVertex(ProxyModel):
